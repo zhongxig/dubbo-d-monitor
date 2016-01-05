@@ -1,0 +1,9 @@
+
+redis.host = ${redis.host}
+
+#dubbo
+dubbo.application.name = ${dubbo.application.name}
+dubbo.port = ${dubbo.port}
+zookeeper.address = ${zookeeper.address}
+
+

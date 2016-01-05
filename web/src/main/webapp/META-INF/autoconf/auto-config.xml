@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<config description="">
+    <group name="default">
+
+
+        <property name="redis.host" defaultValue="redis://ants-monitor:123456@127.0.0.1:6379/2"/>
+
+        <property name="dubbo.application.name" defaultValue="ants-monitor"/>
+        <property name="dubbo.port" defaultValue="19300"/>
+        <property name="zookeeper.address" defaultValue="127.0.0.1:2181"/>
+
+
+    </group>
+    <script>
+        <generate template="application.properties.vm"
+                  destfile="WEB-INF/classes/application.properties"
+                  charset="UTF-8"/>
+    </script>
+</config>

@@ -1,0 +1,22 @@
+.blockElement{
+    top: 0 !important;
+}
+
+.form-control:focus
+{
+    webkit-transition: border linear .2s,-webkit-box-shadow linear .5s !important;
+    outline: none;
+    border-color: rgb(216, 5, 5) !important;
+    box-shadow: 0 0 8px rgb(252, 40, 40) !important;
+    -moz-box-shadow: 0 0 8px rgb(252, 40, 40) !important;
+    -webkit-box-shadow: 0 0 8px rgb(252, 40, 40) !important;
+}
+
+.blockElement{
+    opacity:1.0 !important;
+}
+
+span{
+    font-family: "Open Sans", sans-serif;
+    cursor: pointer;
+}

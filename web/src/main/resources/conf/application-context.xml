@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd">
+
+    <!-- 引入jdbc配置文件 -->
+    <context:property-placeholder location="classpath:application.properties" ignore-unresolvable="true"/>
+
+    <!-- 扫描文件（ -->
+    <context:component-scan base-package="com.ants.monitor"/>
+
+    <!--dubbo-->
+    <import resource="application-dubbo.xml"/>
+
+    <!--工具配置-->
+    <import resource="application-tool.xml"/>
+
+    <!--redis-->
+    <import resource="application-redis.xml"/>
+
+</beans>

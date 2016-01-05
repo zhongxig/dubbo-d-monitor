@@ -346,11 +346,6 @@
             <url>http://repository.sonatype.org/content/</url>
         </repository>
 
-        <!--<repository>-->
-        <!--<id>other3</id>-->
-        <!--<name>tqmall</name>-->
-        <!--<url>http://build.tqmall.com/nexus/content/groups/public/</url>-->
-        <!--</repository>-->
     </repositories>
     <!-- end 添加仓库 -->
 

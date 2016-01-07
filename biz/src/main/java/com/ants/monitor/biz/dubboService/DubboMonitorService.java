@@ -30,13 +30,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 @Slf4j
 public class DubboMonitorService implements MonitorService {
 
-    private Thread saveInvokeThread;
+//    private Thread saveInvokeThread;
 
     private BlockingQueue<URL> queue;
 
     private static final String POISON_PROTOCOL = "poison";
 
-    private volatile boolean running = true;
+//    private volatile boolean running = true;
 
 
     @Autowired
@@ -49,32 +49,32 @@ public class DubboMonitorService implements MonitorService {
     private void init() {
         queue = new LinkedBlockingQueue<URL>(Integer.parseInt(ConfigUtils.getProperty("dubbo.monitor.queue", "100000")));
 
-        saveInvokeThread = new Thread(new Runnable() {
-            public void run() {
-                while(running) {
-                    try {
-                        saveInvoke();
-                    } catch (Throwable t) { // 防御性容错
-                        log.error("Unexpected error occur at write stat log, cause: " + t.getMessage(), t);
-                        try {
-                            Thread.sleep(5000); // 失败延迟
-                        } catch (Throwable t2) {
-                        }
-                    }
-                }
-            }
-        });
-        saveInvokeThread.setDaemon(true);
-        saveInvokeThread.setName("DubboMonitorAsyncWriteLogThread");
-        saveInvokeThread.start();
+//        saveInvokeThread = new Thread(new Runnable() {
+//            public void run() {
+//                while(running) {
+//                    try {
+//                        saveInvoke();
+//                    } catch (Throwable t) { // 防御性容错
+//                        log.error("Unexpected error occur at write stat log, cause: " + t.getMessage(), t);
+//                        try {
+//                            Thread.sleep(5000); // 失败延迟
+//                        } catch (Throwable t2) {
+//                        }
+//                    }
+//                }
+//            }
+//        });
+//        saveInvokeThread.setDaemon(true);
+//        saveInvokeThread.setName("DubboMonitorAsyncWriteLogThread");
+//        saveInvokeThread.start();
     }
 
     @Override
     public void collect(URL statistics) {
         queue.offer(statistics);
-//        if (log.isInfoEnabled()) {
-//            log.info("collect statistics: " + statistics);
-//        }
+
+        StartInvokeProcess startInvokeProcess = new StartInvokeProcess();
+        taskExecutor.execute(startInvokeProcess);
     }
 
     @Override
@@ -162,6 +162,20 @@ public class DubboMonitorService implements MonitorService {
         @Override
         public void run() {
             invokeRedisManager.saveInvoke(date, invokeDO);
+        }
+    }
+
+
+
+    //内部线程类，开始处理url数据
+    private class StartInvokeProcess implements Runnable {
+        @Override
+        public void run() {
+            try {
+                saveInvoke();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }

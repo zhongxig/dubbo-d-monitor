@@ -24,6 +24,8 @@
 2. 前端：freemarker+metronic+echarts
 3. 框架：springmvc
 4. dubbo版本号：dubbo-2.5.3
+5. 支持的启动容器：jetty 和 tomcat
+6. 其他：autoconfig、maven、ShardedJedisPool
 
 #使用帮助
 在IDEA中

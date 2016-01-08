@@ -1,7 +1,24 @@
 
 # 项目介绍
-界面效果图：待添加
-基于dubbo-monitor的二次开发，兼容了dubbo-admin的部分特性,数据库为redis
+界面效果图：![image](https://github.com/zhongxig/ants-monitor-on-Redis/raw/master/monitor-dashboard.png)
+特性：
+
+1. 首页：
+	* 只观查看应用、方法、host的数量和每个应用之间的调用情况，有助于优化系统间的调用关系
+	* 即时监控应用的停止和启动，其会触发NotifyAppChangeProcessor中的方法，可根据自身业务写自身逻辑代码
+	* 页面上显示应用的停止和启动记录
+2. application:
+	* 查看应用的host:port，是否是消费者或使用者
+	* 其内部的方法和最后调用时间，有助于排除无用的方法
+	* 每日每月的应用调用情况记录和应用之间的调用记录
+3. service:
+	* 查看service中的具体方法的调用情况和统计数据————TPS:每秒查询率（次/秒） ART:每次平均耗时（毫秒/次）
+	* 高亮显示异常的service，方便排错
+4. host:
+	* 记录每个服务器上的应用部署情况
+
+
+# 项目使用的技术
 
 1. 数据库：redis
 2. 前端：freemarker+metronic+echarts

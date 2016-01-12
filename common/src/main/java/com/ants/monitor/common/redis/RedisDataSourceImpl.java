@@ -4,6 +4,7 @@ import com.ants.monitor.common.tools.SpringContextsUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.ShardedJedis;
@@ -36,9 +37,16 @@ public class RedisDataSourceImpl implements RedisDataSource {
     @Override
     public void returnResource(ShardedJedis shardedJedis, boolean broken) {
 
-        if(null == shardedJedisPool){
-            shardedJedisPool = (ShardedJedisPool) SpringContextsUtil.getBean("shardedJedisPool");
+        try {
+            if(null == shardedJedisPool){
+                shardedJedisPool = (ShardedJedisPool) SpringContextsUtil.getBean("shardedJedisPool");
+            }
+            shardedJedisPool.returnResourceObject(shardedJedis);
+        } catch (BeansException e) {
+            if (shardedJedisPool != null) {
+                shardedJedisPool.destroy();
+            }
+            e.printStackTrace();
         }
-        shardedJedisPool.returnResourceObject(shardedJedis);
     }
 }

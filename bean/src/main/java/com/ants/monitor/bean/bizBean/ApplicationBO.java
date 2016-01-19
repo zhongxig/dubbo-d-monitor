@@ -3,6 +3,7 @@ package com.ants.monitor.bean.bizBean;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -22,8 +23,9 @@ public class ApplicationBO {
     //提供服务的ip列表
     private Set<HostBO> hostList;
 
-    //Service
-    private Set<ServiceBO> serviceSet;
+    //Service:online-test-local-wrong 四种类型
+    private Map<String,Set<ServiceBO>> serviceMap;
+//    private Set<ServiceBO> serviceSet;
 
     //providers
     private Set<String> providersSet;

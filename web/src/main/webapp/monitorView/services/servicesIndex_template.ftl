@@ -10,22 +10,20 @@
 <#--警告的tab框-->
 <script type="text/template" id="string_list_template">
     {{#list}}
-        <a href="#" class="warning_service">{{.}}</a>
-        <br>
+    <a href="#" class="warning_service">{{.}}</a>
+    <br>
     {{/list}}
 </script>
 
 <#--方法的展示-->
 <script type="text/template" id="method_template">
     {{#list}}
-        <div class="note note-success margin-bottom-5">
-            <h3 class="block">方法：<br>{{{methodFunction}}}</h3>
-            <p>
-                {{#hostList}}
-                    {{hostString}}  &nbsp;
-                {{/hostList}}
-            </p>
-        </div>
+    <div class="note note-success margin-bottom-5">
+        <h3 class="block">方法：<br>{{{methodFunction}}}</h3>
+        <p>
+            {{{hostFunction}}}
+        </p>
+    </div>
 
     {{/list}}
 </script>
@@ -36,30 +34,30 @@
 <script type="text/template" id="search_result_template">
     {{#list}}
 
-        <tr class="" data-value="{{serviceName}}">
-            <td style="text-align: left">
-                <span class="primary-link">{{{serviceNameFunc}}}</span>
-            </td>
-            <td class="status_{{{statusOK}}}">
-                {{{statusFunction}}}
-            </td>
-            <td >
-                {{#ownerApp}}
-                    {{.}}<br>
-                {{/ownerApp}}
-            </td>
-            <td>
-                {{organization}}
-            </td>
-            <td>
-                {{owner}}
-            </td>
-            <td class="used_{{{usedAppLength}}}">
-                {{{usedAppSum}}}
-            </td>
-            <td>{{finalConsumerTime}}</td>
+    <tr class="" data-value="{{serviceName}}">
+        <td style="text-align: left">
+            <span class="primary-link">{{{serviceNameFunc}}}</span>
+        </td>
+        <td class="status_{{{statusOK}}}">
+            {{{statusFunction}}}
+        </td>
+        <td >
+            {{#ownerApp}}
+            {{.}}<br>
+            {{/ownerApp}}
+        </td>
+        <td>
+            {{organization}}
+        </td>
+        <td>
+            {{owner}}
+        </td>
+        <td class="used_{{{usedAppLength}}}">
+            {{{usedAppSum}}}
+        </td>
+        <td>{{finalConsumerTime}}</td>
 
-        </tr>
+    </tr>
     {{/list}}
 </script>
 
@@ -155,18 +153,18 @@
 <#--数据图表展示-->
 <script type="text/template" id="bar_template">
     {{#list}}
-        <div class="row" data-value="{{.}}">
-            <div class="col-lg-6 col-md-12 col-sm-12">
-                <div id="{{.}}_tps_bar_echarts" style="height:400px">
+    <div class="row" data-value="{{.}}">
+        <div class="col-lg-6 col-md-12 col-sm-12">
+            <div id="{{.}}_tps_bar_echarts" style="height:400px">
 
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-12 col-sm-12">
-                <div id="{{.}}_art_bar_echarts" style="height:400px">
-
-                </div>
             </div>
         </div>
+        <div class="col-lg-6 col-md-12 col-sm-12">
+            <div id="{{.}}_art_bar_echarts" style="height:400px">
+
+            </div>
+        </div>
+    </div>
 
     {{/list}}
 </script>

@@ -53,22 +53,36 @@ public class ApplicationController {
             List<ApplicationBO> appList = new ArrayList<>();
 
             Set<String> groupSet = new HashSet<>();
+            Integer appSum = 0;
             for (Map.Entry<String, ApplicationBO> applicationBOEntry : allApplicationsMap.entrySet()) {
+                appSum +=1;
                 ApplicationBO applicationBO = applicationBOEntry.getValue();
                 String organization = applicationBO.getOrganization();
-                groupSet.add(organization);
+                if(!organization.equals("")) {
+                    groupSet.add(organization);
+                }
 
-                Set<ServiceBO> serviceSet = applicationBO.getServiceSet();
+                Set<String> serviceSet = new HashSet<>();
+                Map<String,Set<ServiceBO>> serviceMap = applicationBO.getServiceMap();
+                if(serviceMap != null) {
+                    for (Map.Entry<String, Set<ServiceBO>> entry : serviceMap.entrySet()) {
+                        Set<ServiceBO> serviceBOSet = entry.getValue();
+                        for (ServiceBO serviceBO : serviceBOSet) {
+                            serviceSet.add(serviceBO.getServiceName());
+                        }
+                    }
+                }
+
                 Set<String> providersSet = applicationBO.getProvidersSet();
                 Set<String> consumersSet = applicationBO.getConsumersSet();
-                if (null != serviceSet) applicationBO.setServiceSum(serviceSet.size());
+                if (!serviceSet.isEmpty()) applicationBO.setServiceSum(serviceSet.size());
                 if (null != providersSet) applicationBO.setProviderSum(providersSet.size());
                 if (null != consumersSet) applicationBO.setConsumerSum(consumersSet.size());
                 appList.add(applicationBO);
             }
 
 
-            resultMap.put("appSum", allApplicationsMap.keySet().size());
+            resultMap.put("appSum",appSum);
             resultMap.put("groupSum", groupSet.size());
             resultMap.put("appList", appList);
             resultMap.put("allApp", allApplicationsMap);

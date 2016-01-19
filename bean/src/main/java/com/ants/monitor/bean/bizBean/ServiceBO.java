@@ -24,6 +24,9 @@ public class ServiceBO {
     // 若同个service 存在的方法不一样，则此service 出错
     private Boolean isWrong = false;
 
+    //错误原因
+    private String wrongReason;
+
     // ==================services.ftl 使用====================
 
     // 所属团队
@@ -34,6 +37,9 @@ public class ServiceBO {
 
     //使用的app
     private Set<String> usedApp;
+
+    //本地起了测试或线上，测试起了线上
+    private Boolean isHostWrong = false;
 
     //每个method提供的host地址
     private Map<String,Set<HostBO>> methodsHost;

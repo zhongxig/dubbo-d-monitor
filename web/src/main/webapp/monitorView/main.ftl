@@ -104,8 +104,6 @@
                     <!-- END USER LOGIN DROPDOWN -->
 
                     <li class="dropdown dropdown-user dropdown-dark">
-                        <input type="hidden" id="user_name" value="${name}">
-                        <input type="hidden" id="idpUrl" value="${idpUrl}">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
                             <img alt="" class="img-circle" style="background-color: #86B4DC;" src="${base}/resources/assets/img/ants_img.png">
                             <span class="username username-hide-on-mobile" id="user_name_show">
@@ -116,17 +114,7 @@
                                 </#if>
                             </span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-default">
-                            <li >
-                                <a href="${idpUrl}user/edit/pass">
-                                    <i class="fa fa-pencil"></i>
-                                    修改密码
-                                </a>
-                            </li>
 
-                            <li><a href="#" id="logout"><i class="fa fa-sign-out"></i> 退出</a></li>
-
-                        </ul>
                     </li>
                     <!-- END USER LOGIN DROPDOWN -->
                 </ul>

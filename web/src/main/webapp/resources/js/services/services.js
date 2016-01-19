@@ -6,6 +6,8 @@ var storage = window.sessionStorage;//localStorage;
 var echartsEc;
 // 所有的app相关map，将返回的对象存储起来
 var allAppResultMap = undefined;
+// 测试环境url
+var testUrlSet = undefined;
 
 $(function () {
     initData();
@@ -23,11 +25,13 @@ function initData() {
         if (resultVO.success) {
             var resutMap = resultVO.data;
             allAppResultMap = resutMap.allServicesMap;
+            testUrlSet = resutMap.testUrlSet;
             // 展示风险项
             var wrongAppList = resutMap.wrongAppList;
             var wrongMethodsList = resutMap.wrongMethodsList;
+            var wrongHostServiceList = resutMap.wrongHostServiceList;
 
-            if (wrongAppList.length == 0 && wrongMethodsList.length == 0) {
+            if (wrongAppList.length == 0 && wrongMethodsList.length == 0 && wrongHostServiceList.length == 0) {
                 $("#warning_tab_div").addClass("hidden");
             } else {
                 $("#warning_tab_div").removeClass("hidden");
@@ -40,6 +44,10 @@ function initData() {
             if (wrongMethodsList.length > 0) {
                 var wrongMethodsList_html = Mustache.render($('#string_list_template').html(), {'list': wrongMethodsList});
                 $("#tab_more_method").html(wrongMethodsList_html);
+            }
+            if (wrongHostServiceList.length > 0) {
+                var wrongHostServiceList_html = Mustache.render($('#string_list_template').html(), {'list': wrongHostServiceList});
+                $("#wrong_host_content").html(wrongHostServiceList_html);
             }
 
             // 异常的service点击
@@ -77,12 +85,14 @@ function initClick() {
     });
 
     //点击另外一个标签
-    $("#more_app_tab_a").click(function(){
-        $("#tab_more_method").removeClass("active");
-        $("#tab_more_app").addClass("active");
+    $(".wrong_tab").click(function(){
+        var content_id = $(this).find('a').attr("href");
 
-        $("#more_service_tab_a").parent().removeClass("active");
-        $("#more_app_tab_a").parent().addClass("active");
+        $('.wrong_tab').removeClass("active");
+        $(this).addClass("active");
+        $('.wrong_content').removeClass("active");
+        $(content_id).addClass("active");
+
         Amm.changeiframeParentHeight();
         return false;
     });
@@ -166,8 +176,12 @@ function serviceTable(search_value) {
             var html = '';
             var ownerSet = this.ownerApp;
             var methodsSet = this.methods;
-            if (ownerSet != undefined && methodsSet != undefined && ownerSet.length == 1 && methodsSet.length == 1) {
+            var isHostWrong = this.isHostWrong;
+            if (ownerSet != undefined && methodsSet != undefined && ownerSet.length == 1 && methodsSet.length == 1 && !isHostWrong) {
                 return successHtml.replace("SUCCESS", "正常")
+            }
+            if(isHostWrong){
+                html += warningHtml.replace("WARNING", "非法启动")
             }
             if (methodsSet == undefined) {
                 html += warningHtml.replace("WARNING", "无方法")
@@ -254,6 +268,19 @@ function tableClick() {
                     });
                     var html_length = html.length;
                     if (html.charAt(html_length - 1) == ",") html = html.substring(0, html.length - 1);
+                    return html;
+                },
+                hostFunction:function(){
+                    var html = ""
+                    var hostList = this.hostList;
+                    $.each(hostList,function(i,hostBO){
+                        var host = hostBO.host;
+                        if($.inArray(host,testUrlSet) > -1){
+                            html += '<span class="badge badge-success">测试环境：'+hostBO.hostString+ "</span>";
+                        }else{
+                            html += hostBO.hostString + " "
+                        }
+                    });
                     return html;
                 }
             };

@@ -100,16 +100,16 @@
                                     </div>
                                 </div>
                             </div>
-                            <#--<div class="stat-left">-->
-                                <#--<div class="stat-number">-->
-                                    <#--<div class="title">-->
-                                        <#--服务总数-->
-                                    <#--</div>-->
-                                    <#--<div class="number" id="appSumNumber">-->
-                                        <#--0-->
-                                    <#--</div>-->
-                                <#--</div>-->
-                            <#--</div>-->
+                        <#--<div class="stat-left">-->
+                        <#--<div class="stat-number">-->
+                        <#--<div class="title">-->
+                        <#--服务总数-->
+                        <#--</div>-->
+                        <#--<div class="number" id="appSumNumber">-->
+                        <#--0-->
+                        <#--</div>-->
+                        <#--</div>-->
+                        <#--</div>-->
                         </div>
                         <div class="col-md-6 col-sm-6 col-xs-6">
                             <div class="stat-center">
@@ -123,16 +123,16 @@
                                     </div>
                                 </div>
                             </div>
-                            <#--<div class="stat-right">-->
-                                <#--<div class="stat-number">-->
-                                    <#--<div class="title">-->
-                                        <#--维护团队-->
-                                    <#--</div>-->
-                                    <#--<div class="number" id="groupSumNumber">-->
-                                        <#--0-->
-                                    <#--</div>-->
-                                <#--</div>-->
-                            <#--</div>-->
+                        <#--<div class="stat-right">-->
+                        <#--<div class="stat-number">-->
+                        <#--<div class="title">-->
+                        <#--维护团队-->
+                        <#--</div>-->
+                        <#--<div class="number" id="groupSumNumber">-->
+                        <#--0-->
+                        <#--</div>-->
+                        <#--</div>-->
+                        <#--</div>-->
                         </div>
                     </div>
                     <div class="table-scrollable table-scrollable-borderless">
@@ -225,22 +225,10 @@
 
         <div class="portlet-body">
 
-            <div class="table-scrollable">
-                <table class="table table-striped table-bordered table-hover">
-                    <thead>
-                    <tr>
-                        <th>序号</th>
-                        <th>service</th>
-                        <th>负责人</th>
-                        <th>有无被消费</th>
-                        <th>最后消费时间</th>
-                    </tr>
-                    </thead>
-                    <tbody id="application_service_tbody">
+            <div class="tabbable-custom " id="all_service_div">
 
-                    </tbody>
-                </table>
             </div>
+
         </div>
     </div>
 </section>

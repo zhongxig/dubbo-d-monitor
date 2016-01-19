@@ -1,5 +1,6 @@
 package com.ants.monitor.biz.support.processor;
 
+import com.ants.monitor.bean.MonitorConstants;
 import com.ants.monitor.biz.dubboService.RegistryContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -23,6 +24,8 @@ public class RegistryContainerProcessor implements ApplicationListener<ContextRe
             //需要执行的逻辑代码，当spring容器初始化完成后就会执行该方法。
             System.out.println("1=====start]");
             registryContainer.start();
+            // ip地址的初始化
+            MonitorConstants.initEcsMap();
         }else{
             // dubbo的数据初始化后的操作
             System.out.println("2=====start]");

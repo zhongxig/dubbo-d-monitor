@@ -13,7 +13,8 @@
     <!-- 自动扫描该包，使SpringMVC认为包下用了@controller注解的类是控制器 -->
     <context:component-scan base-package="com.ants.monitor.controller"/>
 
-    <context:property-placeholder location="classpath:application.properties" ignore-unresolvable="true"/>
+    <!--读取配置文件-->
+    <import resource="conf/properties.xml"/>
 
     <!--避免IE执行AJAX时，返回JSON出现下载文件 -->
     <bean id="mappingJacksonHttpMessageConverter"

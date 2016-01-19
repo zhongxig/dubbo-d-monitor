@@ -21,11 +21,17 @@ public class MonitorConstants {
 
     /**=============ip 所在的服务器===================================**/
 
-    //存ip：name
+    //存所有的ip：name
     public static final Map<String,String> ecsMap = new HashMap<>();
     // 双向map
     public static final BiMap<String,String> ecsBiMap = HashBiMap.create();
+    //测试环境的ip
+    public static final Map<String,String> ecsTestMap = new HashMap<>();
 
+    public static void initEcsMap(){
+        //todo 自定义初始化上述map。将ip放置在内存中。
+
+    }
 
 
 }

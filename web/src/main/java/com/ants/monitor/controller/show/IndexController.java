@@ -36,10 +36,6 @@ public class IndexController {
     @Autowired
     private AppChangeService appChangeService;
 
-
-    @Value("${idp.url}")
-    private String idpUrl;
-
     //主页
     @RequestMapping(value = "main")
     public ModelAndView main(HttpServletRequest request) {
@@ -50,7 +46,6 @@ public class IndexController {
         ModelAndView modelAndView = new ModelAndView("monitorView/main");
 
         modelAndView.addObject("name", name);
-        modelAndView.addObject("idpUrl", idpUrl);
 
 
         return modelAndView;

@@ -65,7 +65,7 @@
         .fa-warning{
             color: red;
         }
-         /*高亮*/
+        /*高亮*/
         .hlight{
             background: yellow;
         }
@@ -135,16 +135,22 @@
 
                                 <ul class="nav nav-tabs ">
 
-                                    <li class="active">
-                                        <a href="#tab_more_method" data-toggle="tab" id="more_service_tab_a">
+                                    <li class="active wrong_tab">
+                                        <a href="#tab_more_method" data-toggle="tab" >
                                             <i class="fa fa-warning"></i>
-                                            <span>警告:存在同个Service提供不同的method</span>
+                                            <span>多方法</span>
                                         </a>
                                     </li>
-                                    <li class="">
-                                        <a href="#tab_more_app" data-toggle="tab" id="more_app_tab_a">
+                                    <li class="wrong_tab">
+                                        <a href="#tab_more_app" data-toggle="tab">
                                             <i class="fa fa-warning" ></i>
-                                            <span>警告:存在多个application提供同个Service</span>
+                                            <span>多应用</span>
+                                        </a>
+                                    </li>
+                                    <li class="wrong_tab">
+                                        <a href="#wrong_host_content" data-toggle="tab" >
+                                            <i class="fa fa-warning" ></i>
+                                            <span>非法启动</span>
                                         </a>
                                     </li>
                                 </ul>
@@ -152,10 +158,13 @@
 
 
                                 <div class="tab-content" style="padding-left: 10px;">
-                                    <div class="tab-pane active" id="tab_more_method">
+                                    <div class="tab-pane active wrong_content" id="tab_more_method">
                                         无~~
                                     </div>
-                                    <div class="tab-pane " id="tab_more_app">
+                                    <div class="tab-pane wrong_content" id="tab_more_app">
+                                        无~~
+                                    </div>
+                                    <div class="tab-pane wrong_content" id="wrong_host_content">
                                         无~~
                                     </div>
                                 </div>

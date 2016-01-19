@@ -103,6 +103,21 @@ public class ServicesServiceImpl implements ServicesService {
         Map<String, Set<URL>> providersServices = registry.get(Constants.PROVIDERS_CATEGORY);
         Map<String, Set<URL>> consumersServices = registry.get(Constants.CONSUMERS_CATEGORY);
 
+        //测试环境url
+        Set<String> testUrlSet = new HashSet<>();
+        for(Map.Entry<String,String> entry : MonitorConstants.ecsTestMap.entrySet()){
+            testUrlSet.add(entry.getKey());
+            testUrlSet.add(entry.getValue());
+        }
+        //所有服务器url,除测试环境外
+        Set<String> onlineUrlSet = new HashSet<>();
+        for(Map.Entry<String,String> entry : MonitorConstants.ecsMap.entrySet()){
+            String url = entry.getKey();
+            if(!testUrlSet.contains(url)) {
+                onlineUrlSet.add(url);
+            }
+        }
+
         for (Map.Entry<String, Set<URL>> serviceEntry : providersServices.entrySet()) {
             String service = serviceEntry.getKey();
             Set<URL> urlSet = serviceEntry.getValue();
@@ -126,12 +141,19 @@ public class ServicesServiceImpl implements ServicesService {
                 if(null == ownerApp) ownerApp = new HashSet<>();
                 ownerApp.add(application);
                 serviceBO.setOwnerApp(ownerApp);
+                //本地起了测试或线上，测试起了线上
+                String host = url.getHost();
+                if(service.endsWith("1.0.0") && !onlineUrlSet.contains(host)){
+                    serviceBO.setIsHostWrong(true);
+                }
+                if(service.endsWith("1.0.0.daily") && !testUrlSet.contains(host)){
+                    serviceBO.setIsHostWrong(true);
+                }
             }
 
             String finalTime = registryContainer.getServiceConsumerTime(service);
             serviceBO.setFinalConsumerTime(finalTime);
             serviceBOMap.put(service,serviceBO);
-
         }
 
         for (Map.Entry<String, Set<URL>> serviceEntry : consumersServices.entrySet()) {

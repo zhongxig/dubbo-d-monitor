@@ -1,6 +1,7 @@
 package com.ants.monitor.controller.show;
 
 import com.alibaba.dubbo.common.Constants;
+import com.ants.monitor.bean.MonitorConstants;
 import com.ants.monitor.bean.ResultVO;
 import com.ants.monitor.bean.bizBean.HostBO;
 import com.ants.monitor.bean.bizBean.ServiceBO;
@@ -48,6 +49,7 @@ public class ServicesController {
             Map<String, ServiceBO> allServicesMap = servicesService.getServiceBOMap();
             List<String> wrongMethodsList = new ArrayList<>();
             List<String> wrongAppList = new ArrayList<>();
+            List<String> wrongHostServiceList = new ArrayList<>();
 
             for (Map.Entry<String, ServiceBO> serviceBOEntry : allServicesMap.entrySet()) {
                 String serviceName = serviceBOEntry.getKey();
@@ -61,12 +63,24 @@ public class ServicesController {
                 if(null != methodSet && methodSet.size() > 1){
                     wrongMethodsList.add(serviceName);
                 }
+                if(serviceBO.getIsHostWrong()){
+                    wrongHostServiceList.add(serviceName);
+                }
 
+            }
+
+            //测试环境url
+            Set<String> testUrlSet = new HashSet<>();
+            for(Map.Entry<String,String> entry : MonitorConstants.ecsTestMap.entrySet()){
+                testUrlSet.add(entry.getKey());
+                testUrlSet.add(entry.getValue());
             }
 
             resultMap.put("wrongAppList", wrongAppList);
             resultMap.put("wrongMethodsList", wrongMethodsList);
+            resultMap.put("wrongHostServiceList", wrongHostServiceList);
             resultMap.put("allServicesMap", allServicesMap);
+            resultMap.put("testUrlSet", testUrlSet);
 
             return ResultVO.wrapSuccessfulResult(resultMap);
         } catch (Exception e) {

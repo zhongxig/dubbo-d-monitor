@@ -1,69 +1,106 @@
 <#--app 主列表模板-->
 <script type="text/template" id="main_app_list_template">
     {{#list}}
-        <tr class="" data-appname="{{applicationName}}">
-            <td>
-                <span class="primary-link">{{applicationName}}</span>
-            </td>
-            <td>
-                {{{categoryFunc}}}
-            </td>
-            <td style="text-align: left">
-                {{#hostList}}
-                    {{hostString}}<br>
-                {{/hostList}}
-            </td>
-            <td>
-                {{organization}}
-            </td>
-            <td>
-                {{owner}}
-            </td>
-            <td>
-               {{{serviceSumFunc}}}
-            </td>
-            <td>
-                {{{providerSumFunc}}}
-            </td>
-            <td>
-                {{{consumerSumFunc}}}
-            </td>
+    <tr class="" data-appname="{{applicationName}}">
+        <td>
+            <span class="primary-link">{{applicationName}}</span>
+        </td>
+        <td>
+            {{{categoryFunc}}}
+        </td>
+        <td style="text-align: left">
+            {{#hostList}}
+            {{hostString}}<br>
+            {{/hostList}}
+        </td>
+        <td>
+            {{organization}}
+        </td>
+        <td>
+            {{owner}}
+        </td>
+        <td>
+            {{{serviceSumFunc}}}
+        </td>
+        <td>
+            {{{providerSumFunc}}}
+        </td>
+        <td>
+            {{{consumerSumFunc}}}
+        </td>
 
-        </tr>
+    </tr>
     {{/list}}
 </script>
 
 <#--警告框-->
 <script type="text/template" id="alert_danger_template">
     <div class="alert alert-danger alert-dismissable">
-            <button type="button" class="close" data-dismiss="alert" aria-hidden="true"></button>
-            <strong>警告!</strong> {{appName}} 不存在提供的service，仅作为消费者！
+        <button type="button" class="close" data-dismiss="alert" aria-hidden="true"></button>
+        <strong>警告!</strong> {{appName}} 不存在提供的service，仅作为消费者！
     </div>
 </script>
 
 <script type="text/template" id="service_table_tbody_template">
     {{#list}}
-        <tr class="service" data-servicename="{{serviceName}}">
-            <td>{{{indexFunc}}}</td>
-            <td style="text-align: left">
-                {{{wrongFunc}}}
-                {{serviceName}}
-            </td>
-            <td>{{owner}}</td>
-            <td class="consumers">
-                {{{consumersFunc}}}
-            </td>
-            <td>{{finalConsumerTime}}</td>
-        </tr>
-        <tr class="hidden method" >
-            <td colspan="5" style="text-align: left">
-                方法:<br>
-                {{#methods}}
-                    {{.}} <br>
-                {{/methods}}
-            </td>
-        </tr>
+    <tr class="service" data-servicename="{{serviceName}}">
+        <td>{{{indexFunc}}}</td>
+        {{#wrongFunc}}
+        <td>{{.}}</td>
+        {{/wrongFunc}}
+        <td style="text-align: left">
+            {{serviceName}}
+        </td>
+        <td>{{owner}}</td>
+        <td class="consumers">
+            {{{consumersFunc}}}
+        </td>
+        <td>{{finalConsumerTime}}</td>
+    </tr>
+    <tr class="hidden method" >
+        <td colspan="5" style="text-align: left">
+            {{{methodFunc}}}
+        </td>
+    </tr>
     {{/list}}
+</script>
+
+
+<script type="text/template" id="service_tab_templates">
+    <ul class="nav nav-tabs ">
+        {{#list}}
+        <li class="{{class}} service_tab"><a href="#service_{{status}}" data-toggle="tab" >{{name}}</a></li>
+        {{/list}}
+    </ul>
+</script>
+<script type="text/template" id="service_content_templates">
+    <div class="tab-content">
+        {{#list}}
+        <div class="tab-pane service_content {{class}}" id="service_{{status}}">
+
+            <div class="table-scrollable">
+                <table class="table table-striped table-bordered table-hover">
+                    <thead>
+                    <tr>
+                        <th>序号</th>
+                        {{#wrong}}
+                        <th>错误原因</th>
+                        {{/wrong}}
+                        <th>service</th>
+                        <th>负责人</th>
+                        <th>有无被消费</th>
+                        <th>最后消费时间</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{{tbody_html}}}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        {{/list}}
+    </div>
 </script>
 
 <script type="text/template" id="echarts_section_template">

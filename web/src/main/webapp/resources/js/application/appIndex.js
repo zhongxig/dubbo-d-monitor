@@ -143,7 +143,7 @@ function inputFunction() {
     });
     $('#search_service_value').keyup(function () {
         var key_value = $("#search_service_value").val().trim().toUpperCase();
-        var all_tr = $('#application_service_tbody > tr.service');
+        var all_tr = $('#all_service_div > div > div.active>div>table>tbody>tr.service');
         if (key_value == '') {
             $(all_tr).removeClass("hidden");
         } else {
@@ -263,34 +263,91 @@ function echartSectionFunction(){
 function initServiceTable(appName) {
     var appMap = allAppResutMap.allApp;
     var appBO = appMap[appName];
-    var appServices = appBO.serviceSet;
-    var indexs = 0;
+    var serviceMap = appBO.serviceMap;
 
-    var map = {
-        list: appServices,
-        indexFunc: function () {
-            return indexs += 1
-        },
-        consumersFunc: function () {
-            var isConsumers = this.isConsumer;
-            if (isConsumers) return '<span class="badge badge-danger"><i class="fa fa-check"></i> </span>'
-        },
-        wrongFunc:function(){
-            var isWrong = this.isWrong;
-            if(isWrong){
-                return '<i class="fa fa-warning Tooltip"  data-toggle="tooltip" data-placement="left" title="存在不同方法提供" style="color: red"></i>'
-            } else{
-                return ''
-            }
+    var tabs_list = [];
+    var tab_first = true;
+
+    var content_list = [];
+    var tab_content_first = true;
+    var status_name = {'online':'线上','test':'测试','local':'本地','wrong':'错误异常'}
+    $.each(serviceMap,function(status,serviceSet){
+        //标签头
+        var tab_map = {'name':status_name[status],'status':status,'class':''};
+        if(tab_first){
+            tab_map['class'] = 'active';
+            tab_first = false;
+        }
+        tabs_list.push(tab_map);
+        //内容
+        var content_map = {'name':status_name[status],'status':status,'class':''};
+        if(tab_content_first){
+            content_map['class'] = 'active';
+            tab_content_first = false;
+        }
+        if(status == 'wrong'){
+            content_map['wrong'] = 'wrong';
         }
 
-    };
-    var html = Mustache.render($('#service_table_tbody_template').html(), map);
-    $("#application_service_tbody").html(html);
+        //拼接每一行的内容
+        var indexs = 0;
+        var map = {
+            list: serviceSet,
+            indexFunc: function () {
+                return indexs += 1
+            },
+            consumersFunc: function () {
+                var isConsumers = this.isConsumer;
+                if (isConsumers) return '<span class="badge badge-danger"><i class="fa fa-check"></i> </span>'
+            },
+            wrongFunc:function(){
+                var wrongReason = this.wrongReason;
+                if (wrongReason != undefined && wrongReason!= ''){
+                    return wrongReason;
+                }
+            },
+            methodFunc:function(){
+                var html = "";
+                var methodsHost = this.methodsHost;
+                $.each(methodsHost,function(method,hostSet){
+                    html += method +"-----";
+                    $.each(hostSet,function(i,host){
+                        html += host.hostString+" ";
+                    })
+                })
+                return html;
+            }
+
+        };
+        var tbody_html = Mustache.render($('#service_table_tbody_template').html(), map);
+        content_map['tbody_html'] = tbody_html;
+        content_list.push(content_map);
+    });
+
+    var tab_html = Mustache.render($('#service_tab_templates').html(), {'list':tabs_list});
+    var content_html = Mustache.render($('#service_content_templates').html(), {'list':content_list});
+
+    $('#all_service_div').html(tab_html+content_html);
+
     $("#services_app_span").text(appName);
 
-    $("#application_service_tbody > tr").unbind("click").click(function () {
+    $(".service").unbind("click").click(function () {
         $(this).next("tr").toggleClass("hidden");
+        return false;
+    });
+    $(".service_tab").unbind("click").click(function () {
+        var content_id = $(this).find('a').attr("href");
+
+        $('.service_tab').removeClass("active");
+        $(this).addClass("active");
+        $('.service_content').removeClass("active");
+        $(content_id).addClass("active");
+
+        //重置筛选
+        $("#search_service_value").val('');
+        $(".service").removeClass("hidden");
+
+        Amm.changeiframeParentHeight();
         return false;
     });
     $('.Tooltip').tooltip()

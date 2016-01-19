@@ -44,6 +44,7 @@
 		zookeeper.address = 127.0.0.1:2181 # 此处为zk地址
 		redis.host  = redis://ants-monitor:123456@127.0.0.1:6379/2 #此处为redis数据库 密码@ip:host/db号
 
+	com.ants.monitor.bean.MonitorConstants的initEcsMap方法，在内存中存入自定义线上ip地址和测试环境ip地址。
 
 > **注意：**因用autoconfig，若使用mvn clean package -Dmaven.test.skip -U打包，则需在 `web/src/main/webapps/META-INFO/autoconf/auto-conf.xml`中进行初始化数据更改。
 

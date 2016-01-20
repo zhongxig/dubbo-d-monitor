@@ -41,12 +41,10 @@ public class RegistryContainerImpl implements RegistryContainer {
     //方法最后的消费时间
     private final Map<String,  String> serviceFinalTimeMap = new ConcurrentHashMap<>();
 
-
     //变更的app的变化 provider:list<bo> || consumer:list<bo>，每次启动时从redis读取
     private final Map<String,Set<ApplicationChangeBO>> changeAppCaChe = new ConcurrentHashMap<>();
     //上次启动时存在redis的数据
     private final Map<String,Set<ApplicationChangeBO>> redisChangeAppCaChe = new ConcurrentHashMap<>();
-
 
     /**判断是否开始监控数据变化
      * time:执行时间
@@ -67,13 +65,16 @@ public class RegistryContainerImpl implements RegistryContainer {
         if(!registryCache.containsKey(Constants.CONSUMERS_CATEGORY)){
             registryCache.put(Constants.CONSUMERS_CATEGORY,new ConcurrentHashMap<String, Set<URL>>());
         }
+        if(!registryCache.containsKey(Constants.CONFIGURATORS_CATEGORY)){
+            registryCache.put(Constants.CONFIGURATORS_CATEGORY,new ConcurrentHashMap<String, Set<URL>>());
+        }
 
         return Collections.unmodifiableMap(registryCache);
     }
 
-
     public Date getFinalUpdateTime() {
-        return (Date) finalDataMap.get("now");
+        Date now = (Date) finalDataMap.get("now");
+        return now;
     }
 
     //获得service最后被消费的时间
@@ -120,7 +121,7 @@ public class RegistryContainerImpl implements RegistryContainer {
             saveChangeAppCaChe();
         }
 
-        finalDataMap.put("startMonitor",true);
+        finalDataMap.put("startMonitor", true);
     }
 
     //    @PostConstruct
@@ -131,7 +132,8 @@ public class RegistryContainerImpl implements RegistryContainer {
                 Constants.VERSION_KEY, Constants.ANY_VALUE,
                 Constants.CLASSIFIER_KEY, Constants.ANY_VALUE,
                 Constants.CATEGORY_KEY, Constants.PROVIDERS_CATEGORY + ","
-                + Constants.CONSUMERS_CATEGORY,
+                + Constants.CONSUMERS_CATEGORY+ ","
+                + Constants.CONFIGURATORS_CATEGORY,
                 Constants.CHECK_KEY, String.valueOf(false));
         if (null == registry) {
             registry = (RegistryService) SpringContextsUtil.getBean("registryService");
@@ -147,12 +149,13 @@ public class RegistryContainerImpl implements RegistryContainer {
                 // 组合新数据
                 final Map<String, Map<String, Set<URL>>> categories = new ConcurrentHashMap<>();
                 //此批的提供者 interface:Service
-                final Map<String,  Set<String>> interfaces = new ConcurrentHashMap<>();
+                final Map<String, Set<String>> interfaces = new ConcurrentHashMap<>();
 
                 Date now = new Date();
                 String time = TimeUtil.getTimeString(now);
-
+                //实际逻辑
                 for (URL url : urls) {
+                    //逻辑处理
                     String application = url.getParameter(Constants.APPLICATION_KEY);
                     if (myDubboName.equals(application)) {
                         continue;
@@ -160,9 +163,9 @@ public class RegistryContainerImpl implements RegistryContainer {
                     String category = url.getParameter(Constants.CATEGORY_KEY, Constants.DEFAULT_CATEGORY);
                     String protocol = url.getProtocol();
 
-                    // 移除此数据:涉及provider、consumer的减少／进行数据通知
+                    // 移除此数据:涉及provider、consumer的减少／进行数据通知+禁用数据的更改
                     if (Constants.EMPTY_PROTOCOL.equals(protocol)) {
-                        UrlEmptyDo(category,url);
+                        UrlEmptyDo(category, url);
                         continue;
                     }
 
@@ -172,7 +175,7 @@ public class RegistryContainerImpl implements RegistryContainer {
                         categories.put(category, services);
                     }
                     String service = url.getServiceKey();
-                    if("com.alibaba.dubbo.monitor.MonitorService".equals(service)){
+                    if ("com.alibaba.dubbo.monitor.MonitorService".equals(service)) {
                         continue;
                     }
                     Set<URL> ids = services.get(service);
@@ -183,7 +186,7 @@ public class RegistryContainerImpl implements RegistryContainer {
                     ids.add(url);
 
                     // interface : service
-                    if(Constants.PROVIDERS_CATEGORY.equals(category)) {
+                    if (Constants.PROVIDERS_CATEGORY.equals(category)) {
                         String serviceInterface = url.getServiceInterface();
                         Set<String> interfaceServices = interfaces.get(serviceInterface);
                         if (interfaceServices == null) {
@@ -191,9 +194,9 @@ public class RegistryContainerImpl implements RegistryContainer {
                             interfaces.put(serviceInterface, interfaceServices);
                         }
                         interfaceServices.add(service);
-                    }else{
+                    } else if (Constants.CONSUMERS_CATEGORY.equals(category)) {
                         //保存其最后被消费时间
-                        serviceFinalTimeMap.put(service,time);
+                        serviceFinalTimeMap.put(service, time);
                     }
                 }
                 // 提供者，批量的interface，涉及provider的减少
@@ -224,7 +227,6 @@ public class RegistryContainerImpl implements RegistryContainer {
     }
 
     /**=========================private=============================================**/
-
     //涉及consumer新增、减少；provider新增
     private void categoryServiceChange( final Map<String, Map<String, Set<URL>>> categories){
         for (Map.Entry<String, Map<String, Set<URL>>> categoryEntry : categories.entrySet()) {
@@ -240,6 +242,7 @@ public class RegistryContainerImpl implements RegistryContainer {
 
     // url以empty开头的url处理，移除此数据:涉及provider、consumer的减少
     private void UrlEmptyDo(String category,URL url){
+
         Map<String, Set<URL>> services = registryCache.get(category);
         if (services != null) {
             String group = url.getParameter(Constants.GROUP_KEY);
@@ -265,7 +268,7 @@ public class RegistryContainerImpl implements RegistryContainer {
     }
 
 
-    // 提供者，批量的interface，涉及providers的减少
+    // 提供者，批量的interface，涉及providers的减少+禁用数据的更改
     private void IsProviderReduce(final Map<String,  Set<String>> interfaces){
         for (Map.Entry<String, Set<String>> interfaceServices : interfaces.entrySet()) {
             String interfaceName = interfaceServices.getKey();

@@ -9,6 +9,7 @@ import com.ants.monitor.bean.bizBean.ApplicationBO;
 import com.ants.monitor.bean.bizBean.HostBO;
 import com.ants.monitor.bean.bizBean.ServiceBO;
 import com.ants.monitor.biz.dubboService.RegistryContainer;
+import com.ants.monitor.common.tools.Tool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -69,6 +70,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         Map<String, Set<URL>> providersServices = registry.get(Constants.PROVIDERS_CATEGORY);
         Map<String, Set<URL>> consumersServices = registry.get(Constants.CONSUMERS_CATEGORY);
+        Map<String, Set<URL>> forbidServices = registry.get(Constants.CONFIGURATORS_CATEGORY);
 
         //提供者处理
         //测试环境url
@@ -89,8 +91,15 @@ public class ApplicationServiceImpl implements ApplicationService {
         // 提供者---拼基本信息
         for (Map.Entry<String, Set<URL>> serviceEntry : providersServices.entrySet()) {
             String serviceName = serviceEntry.getKey();
+            //是否被禁止,禁止则不出现
+            Set<URL> forbidSet = forbidServices.get(serviceName);
+
             Set<URL> urls = serviceEntry.getValue();
             for (URL url : urls) {
+                //是否被禁止,禁止则不出现
+                if(Tool.compareIsOverride(url, forbidSet)){
+                    continue;
+                }
                 Set<HostBO> hostList = new HashSet<>();
 
                 String application = url.getParameter(Constants.APPLICATION_KEY);
@@ -204,6 +213,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         String port = String.valueOf(url.getPort());
         HostBO hostBO = new HostBO(host,port);
         String finalTime = registryContainer.getServiceConsumerTime(serviceName);
+
         Map<String,Set<ServiceBO>> thisServiceMap = applicationBO.getServiceMap();
         if(null == thisServiceMap) thisServiceMap = new HashMap<>();
         Set<ServiceBO> onlineSet = thisServiceMap.get("online");
@@ -236,6 +246,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         serviceBO.setMethodsHost(methodsHost);
         serviceBO.setMethods(methodSet);
         serviceBO.setFinalConsumerTime(finalTime);
+
         //正式环境判断
         if(serviceName.endsWith("1.0.0")){
             if(!onlineUrlSet.contains(host)){

@@ -14,11 +14,15 @@
  */
 package com.ants.monitor.common.tools;
 
+import com.alibaba.dubbo.common.Constants;
+import com.alibaba.dubbo.common.URL;
+
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
+import java.util.Set;
 
 /**
  * Tool
@@ -136,4 +140,29 @@ public class Tool {
         return request.getRemoteAddr();
     }
 
+
+
+    //判断是否是禁止的url
+    public static Boolean compareIsOverride(URL url,Set<URL> forbitUrlSet){
+        if(null == forbitUrlSet || forbitUrlSet.isEmpty()){
+            return false;
+        }
+        String host = url.getHost();
+        Integer port = url.getPort();
+        String path = url.getPath();
+        String version = url.getParameter(Constants.VERSION_KEY);
+
+        Boolean result = false;
+        for(URL compareUrl : forbitUrlSet){
+            String compareHost = compareUrl.getHost();
+            Integer comparePort = compareUrl.getPort();
+            String comparePath = compareUrl.getPath();
+            String compareVersion = compareUrl.getParameter(Constants.VERSION_KEY);
+            if(host.equals(compareHost) && port.equals(comparePort) && path.equals(comparePath) && version.equals(compareVersion)){
+                result = true;
+                break;
+            }
+        }
+        return result;
+    }
 }

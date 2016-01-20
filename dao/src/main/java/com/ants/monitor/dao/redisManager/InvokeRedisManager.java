@@ -28,7 +28,7 @@ public class InvokeRedisManager {
         String key = String.format(RedisKeyBean.invokeListDate, date);
         String jsonString = JsonUtil.objectToJsonStr(invokeDO);
 
-        log.info("save invoke:"+jsonString);
+//        log.info("save invoke:"+jsonString);
         redisClientTemplate.RpushList(key, jsonString);
     }
 

@@ -8,6 +8,7 @@ import com.ants.monitor.bean.MonitorConstants;
 import com.ants.monitor.bean.bizBean.HostBO;
 import com.ants.monitor.bean.bizBean.ServiceBO;
 import com.ants.monitor.biz.dubboService.RegistryContainer;
+import com.ants.monitor.common.tools.Tool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -102,6 +103,7 @@ public class ServicesServiceImpl implements ServicesService {
 
         Map<String, Set<URL>> providersServices = registry.get(Constants.PROVIDERS_CATEGORY);
         Map<String, Set<URL>> consumersServices = registry.get(Constants.CONSUMERS_CATEGORY);
+        Map<String, Set<URL>> forbidServices = registry.get(Constants.CONFIGURATORS_CATEGORY);
 
         //测试环境url
         Set<String> testUrlSet = new HashSet<>();
@@ -128,6 +130,11 @@ public class ServicesServiceImpl implements ServicesService {
                 serviceBO.setServiceName(service);
             }
             for(URL url : urlSet){
+                //是否被禁止,禁止则不出现
+                Set<URL> forbidSet = forbidServices.get(url.getServiceKey());
+                if(Tool.compareIsOverride(url, forbidSet)){
+                    continue;
+                }
                 String application = url.getParameter(Constants.APPLICATION_KEY);
                 String organization = url.getParameter(MonitorConstants.ORGANICATION);
                 String owner = url.getParameter(MonitorConstants.OWNER);

@@ -146,12 +146,12 @@ public class ApplicationServiceImpl implements ApplicationService {
                 String applicationName = url.getParameter(Constants.APPLICATION_KEY);
 
                 String owners = url.getParameter(MonitorConstants.OWNER);
+                String organization = url.getParameter(MonitorConstants.ORGANICATION);
 
                 ApplicationBO consumerApplicationBO = appMap.get(applicationName);
                 if (null == consumerApplicationBO) {
                     // 此app 未提供服务
                     consumerApplicationBO = new ApplicationBO();
-                    String organization = url.getParameter(MonitorConstants.ORGANICATION);
                     consumerApplicationBO.setApplicationName(applicationName);
                     if(StringUtils.isEmpty(consumerApplicationBO.getOrganization())) consumerApplicationBO.setOrganization(organization == null ? "" : organization);
 //                    if(StringUtils.isEmpty(consumerApplicationBO.getOwner())) consumerApplicationBO.setOwner(owners == null ? "" : owners);
@@ -198,7 +198,9 @@ public class ApplicationServiceImpl implements ApplicationService {
                 if(owners != null && consumerApplicationBO.getOwner().equals("")){
                     consumerApplicationBO.setOwner(owners);
                 }
-
+                if(organization != null && consumerApplicationBO.getOrganization().equals("")){
+                    consumerApplicationBO.setOrganization(organization);
+                }
             }
         }
 

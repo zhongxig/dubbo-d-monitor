@@ -15,7 +15,7 @@ public class ApplicationBO {
 
     private String applicationName;
 
-    private String owner;
+    private String owner = "";
 
     // 所属团队
     private String  organization;

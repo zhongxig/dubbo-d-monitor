@@ -111,7 +111,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                     applicationBO = new ApplicationBO();
                     applicationBO.setApplicationName(application);
                     if(StringUtils.isEmpty(applicationBO.getOrganization())) applicationBO.setOrganization(organization == null ? "" : organization);
-                    if(StringUtils.isEmpty(applicationBO.getOwner())) applicationBO.setOwner(owners == null ? "" : owners);
+//                    if(StringUtils.isEmpty(applicationBO.getOwner())) applicationBO.setOwner(owners == null ? "" : owners);
                     appMap.put(application, applicationBO);
                 } else {
                     hostList = applicationBO.getHostList();
@@ -154,7 +154,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                     String organization = url.getParameter(MonitorConstants.ORGANICATION);
                     consumerApplicationBO.setApplicationName(applicationName);
                     if(StringUtils.isEmpty(consumerApplicationBO.getOrganization())) consumerApplicationBO.setOrganization(organization == null ? "" : organization);
-                    if(StringUtils.isEmpty(consumerApplicationBO.getOwner())) consumerApplicationBO.setOwner(owners == null ? "" : owners);
+//                    if(StringUtils.isEmpty(consumerApplicationBO.getOwner())) consumerApplicationBO.setOwner(owners == null ? "" : owners);
 
                     hostList.add(new HostBO(url.getHost(),null));
                     consumerApplicationBO.setHostList(hostList);

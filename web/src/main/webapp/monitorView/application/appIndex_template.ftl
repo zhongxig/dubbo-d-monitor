@@ -131,8 +131,8 @@
                                             <input type="radio"  class="toggle" id="relation_force_7day" data-value="Seven_DAY">前7天</label>
                                         <label class="btn btn-transparent grey-salsa btn-circle btn-sm relation_force_options">
                                             <input type="radio" class="toggle" data-value="Fifteen_DAT">前15天</label>
-                                        <label class="btn btn-transparent grey-salsa btn-circle btn-sm relation_force_options">
-                                            <input type="radio" class="toggle"  data-value="Month">本月</label>
+                                    <#--<label class="btn btn-transparent grey-salsa btn-circle btn-sm relation_force_options">-->
+                                    <#--<input type="radio" class="toggle"  data-value="Month">本月</label>-->
                                     </div>
                                 </div>
                             </div>
@@ -163,8 +163,8 @@
                                             <input type="radio"  class="toggle" id="relation_bar_7day" data-value="Seven_DAY">前7天</label>
                                         <label class="btn btn-transparent grey-salsa btn-circle btn-sm relation_bar_options">
                                             <input type="radio" class="toggle" data-value="Fifteen_DAT">前15天</label>
-                                        <label class="btn btn-transparent grey-salsa btn-circle btn-sm relation_bar_options">
-                                            <input type="radio" class="toggle"  data-value="Month">本月</label>
+                                    <#--<label class="btn btn-transparent grey-salsa btn-circle btn-sm relation_bar_options">-->
+                                    <#--<input type="radio" class="toggle"  data-value="Month">本月</label>-->
                                     </div>
                                 </div>
                             </div>

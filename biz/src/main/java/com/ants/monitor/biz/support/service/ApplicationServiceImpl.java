@@ -13,7 +13,10 @@ import com.ants.monitor.common.tools.Tool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by zxg on 15/11/11.
@@ -24,9 +27,6 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Autowired
     private RegistryContainer registryContainer;
-
-    @Autowired
-    private ServicesService servicesService;
 
     @Override
     public Set<String> getAllApplications() {
@@ -66,7 +66,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
         Map<String, Map<String, Set<URL>>> registry = registryContainer.getRegistryCache();
         //service对应的所有提供者
-        Map<String, Set<String>> serviceProviders = servicesService.getServiceProviders();
+        Map<String, Set<String>> serviceProviders = new HashMap<>();
 
         Map<String, Set<URL>> providersServices = registry.get(Constants.PROVIDERS_CATEGORY);
         Map<String, Set<URL>> consumersServices = registry.get(Constants.CONSUMERS_CATEGORY);
@@ -94,6 +94,13 @@ public class ApplicationServiceImpl implements ApplicationService {
             //是否被禁止,禁止则不出现
             Set<URL> forbidSet = forbidServices.get(serviceName);
 
+            //拼这个service对应的提供者
+            Set<String> appSet = serviceProviders.get(serviceName);
+            if(appSet == null){
+                appSet = new HashSet<>();
+                serviceProviders.put(serviceName,appSet);
+            }
+
             Set<URL> urls = serviceEntry.getValue();
             for (URL url : urls) {
                 //是否被禁止,禁止则不出现
@@ -103,10 +110,12 @@ public class ApplicationServiceImpl implements ApplicationService {
                 Set<HostBO> hostList = new HashSet<>();
 
                 String application = url.getParameter(Constants.APPLICATION_KEY);
+                //service的所有提供者
+                appSet.add(application);
+                //开始拼接BO
                 ApplicationBO applicationBO = appMap.get(application);
                 if (null == applicationBO) {
                     String organization = url.getParameter(MonitorConstants.ORGANICATION);
-                    String owners = url.getParameter(MonitorConstants.OWNER);
 
                     applicationBO = new ApplicationBO();
                     applicationBO.setApplicationName(application);
@@ -154,7 +163,6 @@ public class ApplicationServiceImpl implements ApplicationService {
                     consumerApplicationBO = new ApplicationBO();
                     consumerApplicationBO.setApplicationName(applicationName);
                     if(StringUtils.isEmpty(consumerApplicationBO.getOrganization())) consumerApplicationBO.setOrganization(organization == null ? "" : organization);
-//                    if(StringUtils.isEmpty(consumerApplicationBO.getOwner())) consumerApplicationBO.setOwner(owners == null ? "" : owners);
 
                     hostList.add(new HostBO(url.getHost(),null));
                     consumerApplicationBO.setHostList(hostList);
@@ -201,6 +209,7 @@ public class ApplicationServiceImpl implements ApplicationService {
                 if(organization != null && consumerApplicationBO.getOrganization().equals("")){
                     consumerApplicationBO.setOrganization(organization);
                 }
+
             }
         }
 

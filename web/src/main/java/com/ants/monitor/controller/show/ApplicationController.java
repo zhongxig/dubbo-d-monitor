@@ -1,15 +1,13 @@
 package com.ants.monitor.controller.show;
 
 import com.alibaba.dubbo.common.Constants;
+import com.ants.monitor.bean.MonitorConstants;
 import com.ants.monitor.bean.ResultVO;
 import com.ants.monitor.bean.bizBean.ApplicationBO;
-import com.ants.monitor.bean.bizBean.HostBO;
 import com.ants.monitor.bean.bizBean.ServiceBO;
-import com.ants.monitor.bean.entity.InvokeDO;
-import com.ants.monitor.dao.redisManager.InvokeRedisManager;
 import com.ants.monitor.biz.support.service.ApplicationService;
-import com.ants.monitor.biz.support.service.HostService;
 import com.ants.monitor.common.tools.TimeUtil;
+import com.ants.monitor.dao.redisManager.InvokeReportManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,11 +26,9 @@ import java.util.*;
 public class ApplicationController {
     @Autowired
     private ApplicationService applicationService;
-    @Autowired
-    private HostService hostService;
 
     @Autowired
-    private InvokeRedisManager invokeRedisManager;
+    private InvokeReportManager invokeReportManager;
 
     //主页
     @RequestMapping(value = "main")
@@ -105,6 +101,7 @@ public class ApplicationController {
         ApplicationBO applicationBO = applicationService.getApplicationsBOMap().get(source);
         Set<String> providerSet = applicationBO.getProvidersSet();
         Set<String> consumerSet = applicationBO.getConsumersSet();
+
         if (providerSet == null) providerSet = new HashSet<>();
         if (consumerSet == null) consumerSet = new HashSet<>();
 
@@ -112,42 +109,31 @@ public class ApplicationController {
         Map<String, Integer> consumerMap = new HashMap<>();
         // 即是消费者 又是提供者
         Map<String, Map<String, Integer>> providerConsumerMap = new HashMap<>();
-        resultMap.put("provider", providerMap);
-        resultMap.put("consumer", consumerMap);
+        resultMap.put(Constants.PROVIDER, providerMap);
+        resultMap.put(Constants.CONSUMER, consumerMap);
         resultMap.put("providerConsumer", providerConsumerMap);
 
         // 已appStyle 为 consumer 为主 统计
         for(String date : recentDateList) {
-            List<InvokeDO> invokeDOList = invokeRedisManager.getInvokeByDate(date);
-            for(InvokeDO invokeDO : invokeDOList){
-                String invokeType = invokeDO.getAppType();
-                if(invokeType.equals(Constants.PROVIDER)){
-                    // 做为提供者，提供服务--找不到消费者
-                    continue;
+            Map<String,Map<String,Integer>> appDayMap = invokeReportManager.getAppRelationByAppOnDay(source,date);
+            if(null != appDayMap &&!appDayMap.isEmpty()){
+
+                for(Map.Entry<String,Map<String,Integer>> appDayEntry : appDayMap.entrySet()){
+                    String appType = appDayEntry.getKey();
+                    Map<String,Integer> dayMap = appDayEntry.getValue();
+
+                    Map<String, Integer> resultTypeMap = (Map<String, Integer>) resultMap.get(appType);
+                    for(Map.Entry<String,Integer> dayEntry:dayMap.entrySet()){
+                        String appName = dayEntry.getKey();
+                        Integer sum = dayEntry.getValue();
+
+                        Integer oldSum = resultTypeMap.get(appName);
+                        if(oldSum == null) {oldSum = 0;}
+                        sum += oldSum;
+                        resultTypeMap.put(appName, sum);
+                    }
                 }
-                String providerHost = invokeDO.getProviderHost();
-                String providerPort = invokeDO.getProviderPort();
-                Set<String> nameSet = hostService.getAppNameByHost(new HostBO(providerHost, providerPort));
-                if(nameSet.isEmpty() || nameSet.size() > 1){
-                    // 有且只有一个
-                    continue;
-                }
-                String appName = invokeDO.getApplication();
-                String providerName = nameSet.iterator().next();
-                if(source.equals(appName)){
-                    Integer success = invokeDO.getSuccess();
-                    // app 作为消费者，被提供
-                    Integer providerSum = providerMap.get(providerName) == null? 0:providerMap.get(providerName);
-                    providerSum += success;
-                    providerMap.put(providerName,providerSum);
-                }
-                if(source.equals(providerName)) {
-                    // app 作为提供者，被消费
-                    Integer success = invokeDO.getSuccess();
-                    Integer consumerSum = consumerMap.get(appName) == null ? 0:consumerMap.get(appName);
-                    consumerSum += success;
-                    consumerMap.put(appName,consumerSum);
-                }
+
             }
         }
 
@@ -161,7 +147,7 @@ public class ApplicationController {
                 Integer providerSum = providerMap.get(providerName) == null ? 0 : providerMap.get(providerName);
 //                Integer consumerSum = consumerMap.get(providerName);
                 Map<String, Integer> map = new HashMap<>();
-                map.put("provider", providerSum);
+                map.put(Constants.PROVIDER, providerSum);
                 providerConsumerMap.put(providerName, map);
                 providerMap.remove(providerName);
             }else{
@@ -174,7 +160,7 @@ public class ApplicationController {
         for (String consumerName : consumerSet) {
             if (providerSet.contains(consumerName)) {
                 Integer consumerSum = consumerMap.get(consumerName) == null ? 0 : consumerMap.get(consumerName);
-                providerConsumerMap.get(consumerName).put("consumer", consumerSum);
+                providerConsumerMap.get(consumerName).put(Constants.CONSUMER, consumerSum);
                 consumerMap.remove(consumerName);
             } else {
                 if(!consumerKeySet.contains(consumerName)) {
@@ -196,52 +182,39 @@ public class ApplicationController {
 
         ApplicationBO applicationBO = applicationService.getApplicationsBOMap().get(source);
         Set<String> consumerSet = applicationBO.getConsumersSet();
+
         if (consumerSet == null) consumerSet = new HashSet<>();
 
         List<String> recentDateList = getRecentDay(type);
 
         for(String date : recentDateList) {
-            List<InvokeDO> invokeDOList = invokeRedisManager.getInvokeByDate(date);
-            for(InvokeDO invokeDO : invokeDOList){
-                String invokeType = invokeDO.getAppType();
-                if(invokeType.equals(Constants.PROVIDER)){
-                    // 做为提供者，提供服务--找不到消费者
-                    continue;
-                }
-                String providerHost = invokeDO.getProviderHost();
-                String providerPort = invokeDO.getProviderPort();
-                Set<String> nameSet = hostService.getAppNameByHost(new HostBO(providerHost, providerPort));
-                if(nameSet.isEmpty() || nameSet.size() > 1){
-                    // 有且只有一个
-                    continue;
-                }
-                String appName = invokeDO.getApplication();
-                String providerName = nameSet.iterator().next();
-                if(source.equals(providerName)) {
-                    // app 作为提供者，被消费
-                    Integer success = invokeDO.getSuccess();
-                    Integer fail = invokeDO.getFailure();
-                    // 时间转化为小时
-                    Long invokeTime = invokeDO.getInvokeTime();
-                    Long afterHour = (invokeTime / (60 * 1000 * 60)) * (60 * 60 * 1000);
-                    String hourTime = TimeUtil.getMinuteString(new Date(afterHour));
-                    // 存储
-                    Map<String, Object> hourSumMap = (Map<String, Object>) resultMap.get(appName);
-                    if(null == hourSumMap){
-                        hourSumMap = new HashMap<>();
-                        resultMap.put(appName,hourSumMap);
+            Map<String,Object> map = (Map<String, Object>) invokeReportManager.getConsumerByAppOnHour(source,date);
+            if(null != map && !map.isEmpty()){
+                for(Map.Entry<String,Object> consumerEntry : map.entrySet()){
+                    String consumerName = consumerEntry.getKey();
+                    Map<String,Object> timeMap = (Map<String, Object>) consumerEntry.getValue();
+
+                    Map<String, Object> resultTimeMap = (Map<String, Object>) resultMap.get(consumerName);
+                    if(resultTimeMap == null){
+                        resultTimeMap = new HashMap<>();
+                        resultMap.put(consumerName,resultTimeMap);
                     }
-                    Map<String,Integer> sumMap = (Map<String, Integer>) hourSumMap.get(hourTime);
-                    if(sumMap == null){
-                        sumMap = new HashMap<>();
-                        sumMap.put("success",success);
-                        sumMap.put("fail",fail);
-                        hourSumMap.put(hourTime,sumMap);
-                    }else{
-                        success += sumMap.get("success");
-                        fail += sumMap.get("fail");
-                        sumMap.put("success",success);
-                        sumMap.put("fail",fail);
+                    for(Map.Entry<String,Object> timeEntry: timeMap.entrySet()){
+                        String time = timeEntry.getKey();
+                        Map<String,Integer> sumMap = (Map<String, Integer>) timeEntry.getValue();
+
+                        Map<String, Integer> resultSumMap = (Map<String, Integer>) resultTimeMap.get(time);
+                        if(resultSumMap == null){
+                            resultSumMap = new HashMap<>();
+                            resultTimeMap.put(time,resultSumMap);
+                        }
+                        Integer resultSuccessNum = resultSumMap.get(MonitorConstants.SUCCESS) == null? 0:resultSumMap.get(MonitorConstants.SUCCESS);
+                        Integer resultFailNum = resultSumMap.get(MonitorConstants.FAIL) == null? 0:resultSumMap.get(MonitorConstants.FAIL);
+
+                        resultSuccessNum += sumMap.get(MonitorConstants.SUCCESS);
+                        resultFailNum += sumMap.get(MonitorConstants.FAIL);
+                        resultSumMap.put(MonitorConstants.SUCCESS,resultSuccessNum);
+                        resultSumMap.put(MonitorConstants.FAIL,resultFailNum);
                     }
                 }
             }

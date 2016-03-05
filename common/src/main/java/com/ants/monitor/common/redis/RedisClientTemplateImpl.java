@@ -240,6 +240,46 @@ public class RedisClientTemplateImpl implements RedisClientTemplate {
     }
 
     @Override
+    public String setMap(String key, Map<String, String> hash) {
+        String result = null;
+        ShardedJedis shardedJedis = redisDataSource.getRedisClient();
+        if (shardedJedis == null) {
+            return result;
+        }
+        boolean broken = false;
+        try {
+            result = shardedJedis.hmset(key, hash);
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            broken = true;
+        } finally {
+            redisDataSource.returnResource(shardedJedis, broken);
+        }
+        return result;
+    }
+
+    @Override
+    public String setMap(String key, Map<String, String> hash, Integer expire) {
+        String result = null;
+        ShardedJedis shardedJedis = redisDataSource.getRedisClient();
+        if (shardedJedis == null) {
+            return result;
+        }
+        boolean broken = false;
+        try {
+            result = shardedJedis.hmset(key, hash);
+            shardedJedis.expire(key,expire);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            broken = true;
+        } finally {
+            redisDataSource.returnResource(shardedJedis, broken);
+        }
+        return result;
+    }
+
+    @Override
     public String getMapKey(String key, String field) {
         String result = null;
         ShardedJedis shardedJedis = redisDataSource.getRedisClient();
@@ -260,7 +300,48 @@ public class RedisClientTemplateImpl implements RedisClientTemplate {
     }
 
     @Override
-    public Long LpushList(String key, String value) {
+    public Boolean delMapKey(String key, String field) {
+        Boolean result = false;
+        ShardedJedis shardedJedis = redisDataSource.getRedisClient();
+        if (shardedJedis == null) {
+            return result;
+        }
+        boolean broken = false;
+        try {
+            shardedJedis.hdel(key,field);
+            result = true;
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            broken = true;
+        } finally {
+            redisDataSource.returnResource(shardedJedis, broken);
+        }
+        return result;
+    }
+
+    @Override
+    public Map<String, String> getAllHash(String key) {
+        Map<String, String> result = new HashMap<>();
+        ShardedJedis shardedJedis = redisDataSource.getRedisClient();
+        if (shardedJedis == null) {
+            return result;
+        }
+        boolean broken = false;
+        try {
+            result = shardedJedis.hgetAll(key);
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            broken = true;
+        } finally {
+            redisDataSource.returnResource(shardedJedis, broken);
+        }
+        return result;
+    }
+
+    @Override
+    public Long lPushList(String key, String value) {
         Long result = 0L;
         ShardedJedis shardedJedis = redisDataSource.getRedisClient();
         if (shardedJedis == null) {
@@ -280,7 +361,37 @@ public class RedisClientTemplateImpl implements RedisClientTemplate {
     }
 
     @Override
-    public Long RpushList(String key, String value) {
+    public Long lPushList(String key, String value, Integer expire) {
+        Long result = 0L;
+        ShardedJedis shardedJedis = redisDataSource.getRedisClient();
+        if (shardedJedis == null) {
+            return result;
+        }
+        if (expire == null) {
+            expire = RedisKeyBean.RREDIS_EXP_DAY;
+        }
+        boolean broken = false;
+        try {
+            result = shardedJedis.lpush(key, value);
+            shardedJedis.expire(key,expire);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            broken = true;
+        } finally {
+            redisDataSource.returnResource(shardedJedis, broken);
+        }
+        return result;
+    }
+
+    /**
+     * 尾部添加数据到list
+     * @param key key值
+     * @param value 数据
+     * @param expire 超时时间，单位:s
+     * @return 0 失败 1 成功
+     */
+    @Override
+    public Long rPushList(String key, String value, Integer expire) {
         Long result = 0L;
         ShardedJedis shardedJedis = redisDataSource.getRedisClient();
         if (shardedJedis == null) {
@@ -289,7 +400,9 @@ public class RedisClientTemplateImpl implements RedisClientTemplate {
         boolean broken = false;
         try {
             result = shardedJedis.rpush(key, value);
-
+            if(expire != null){
+                shardedJedis.expire(key,expire);
+            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             broken = true;
@@ -300,7 +413,7 @@ public class RedisClientTemplateImpl implements RedisClientTemplate {
     }
 
     @Override
-    public String RpopList(String key) {
+    public String rPopList(String key) {
         String result = null;
         ShardedJedis shardedJedis = redisDataSource.getRedisClient();
         if (shardedJedis == null) {
@@ -370,6 +483,29 @@ public class RedisClientTemplateImpl implements RedisClientTemplate {
         try {
             result = shardedJedis.sadd(key, value);
 
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            broken = true;
+        } finally {
+            redisDataSource.returnResource(shardedJedis, broken);
+        }
+        return result;
+    }
+
+    @Override
+    public Long addSet(String key, String value, Integer expire) {
+        Long result = 0L;
+        ShardedJedis shardedJedis = redisDataSource.getRedisClient();
+        if (shardedJedis == null) {
+            return result;
+        }
+        if(expire == null){
+            expire = RedisKeyBean.RREDIS_EXP_DAY;
+        }
+        boolean broken = false;
+        try {
+            result = shardedJedis.sadd(key, value);
+            shardedJedis.expire(key,expire);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             broken = true;

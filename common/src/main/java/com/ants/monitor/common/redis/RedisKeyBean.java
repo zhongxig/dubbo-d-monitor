@@ -13,22 +13,35 @@ public interface RedisKeyBean {
     String NULL_OBJECT = "None";
     /*=====================自定义的各种key=========================================================================*/
 
-    // 该日期的invoke对象
-    String invokeListDate = SYSTEM_PREFIX+"invoke_list_date_%s";
-
+    /*===固定大小的key=======*/
     /**list key**/
     String recentInsertKey = SYSTEM_PREFIX+"recent_app_change_insert_list";
     String recentDeleteKey = SYSTEM_PREFIX+"recent_app_change_delete_list";
-
-    //按日期存储详细变化
-    String dayChangeKey = SYSTEM_PREFIX+"month_app_change_list_%s";
-    //存这月多少日期有变化
-    String monthDayKey = SYSTEM_PREFIX+"month_day_app_change_%s";
-
     /**app 的主要变更 纪录 用作对比比较**/
     String appChangeCacheKey = SYSTEM_PREFIX+"app_change_key";
 
+    //app停止后的记录的map{host-app:time+次数}
+    String appStopMapKey = SYSTEM_PREFIX+"app_stop_map";
 
+    /**APP:PHONE**/
+    String appPhoneMapKey = SYSTEM_PREFIX+"app_phone_map";
+
+    /*========有效期的key==============*/
+    // 该日期的invoke对象，2天
+    String invokeListDate = SYSTEM_PREFIX+"invoke_list_date_%s";
+
+    //按日期存储详细变化,一个月
+    String dayChangeKey = SYSTEM_PREFIX+"month_app_change_list_%s";
+    //存这月多少日期有变化，一个月
+    String monthDayKey = SYSTEM_PREFIX+"month_day_app_change_%s";
+
+
+    //按日统计app的交互数,15天
+    String appInvokeSumOnDayKEY = SYSTEM_PREFIX+"%s_app_sum_on_day_%s";
+    //按小时统计app消费者的每小时消费情况，15天
+    String appConsumerSumOnHourKEY = SYSTEM_PREFIX+"%s_app_consumer_on_hour_%s";
+
+    /*===not used=====*/
     /**每日用户的ip：name**/
     String userIpNameKey = SYSTEM_PREFIX+"user_ip_name_map_%s";
     String userIpNameFieldKey = SYSTEM_PREFIX+"field_%s";

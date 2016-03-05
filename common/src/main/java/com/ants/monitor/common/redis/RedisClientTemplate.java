@@ -80,27 +80,50 @@ public interface RedisClientTemplate {
      * @param value string value
      * @return 如果 field 是哈希表中的一个新建域，并且值设置成功，返回 1 。如果哈希表中域 field 已经存在且旧值已被新值覆盖，返回 0 。
      */
-    public Long setMapKey(String key, String field, String value);
+    Long setMapKey(String key, String field, String value);
 
+    /**
+     * 同时将多个 field-value (域-值)对设置到哈希表 key 中。
+     * 时间复杂度: O(N) (N为fields的数量)
+     *
+     * @param key  key
+     * @param hash field-value的map
+     * @return 如果命令执行成功，返回 OK 。当 key 不是哈希表(hash)类型时，返回一个错误。
+     */
+    String setMap(String key, Map<String, String> hash);
+    String setMap(String key, Map<String, String> hash, Integer expire);
 
-    public String getMapKey(String key, String field);
+    String getMapKey(String key, String field);
 
+    Boolean delMapKey(String key, String field);
+
+    /**
+     * 返回哈希表 key 中，所有的域和值。在返回值里，紧跟每个域名(field name)之后是域的值(value)，所以返回值的长度是哈希表大小的两倍。
+     * 时间复杂度: O(N)
+     *
+     * @param key key
+     * @return 以列表形式返回哈希表的域和域的值。若 key 不存在，返回空列表。
+     */
+    Map<String, String> getAllHash(final String key);
  /*=================================List=============================*/
 
     //头添加数据
-    public Long LpushList(String key, String value);
+    Long lPushList(String key, String value);
+
+    //头添加数据，外加时间
+    Long lPushList(String key, String value, Integer expire);
 
     //尾部添加数据
-    public Long RpushList(String key, String value);
+    Long rPushList(String key, String value, Integer expire);
 
     //尾部删除
-    public String RpopList(String key);
+    String rPopList(String key);
 
     //list长度
-    public Integer listSize(String key);
+    Integer listSize(String key);
 
     //获取list长度
-    public List<String> getList(String key,Integer start,Integer end);
+    List<String> getList(String key, Integer start, Integer end);
 
 
 
@@ -108,6 +131,7 @@ public interface RedisClientTemplate {
     /**==============set==========================**/
 
     Long addSet(String key,String value);
+    Long addSet(String key,String value, Integer expire);
 
     Set<String> getSet(String key);
 }

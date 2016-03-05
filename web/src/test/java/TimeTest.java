@@ -3,7 +3,9 @@ import org.junit.Test;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by zxg on 15/11/17.
@@ -94,6 +96,9 @@ public class TimeTest {
             System.out.println("---secone的值---->" + secone);
 
             System.out.println("---两时间差---> " + day + "天" + hour + "小时" + min + "分" + secone + "秒");
+
+            List<String> list = new ArrayList<>();
+            list.contains("a");
         } catch (ParseException e) {
             e.printStackTrace();
         }

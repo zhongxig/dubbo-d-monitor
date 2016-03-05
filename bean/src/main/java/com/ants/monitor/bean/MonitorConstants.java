@@ -16,6 +16,8 @@ public class MonitorConstants {
 
     public static final String SESSION_USER_NAME = "SESSION_USER_NAME";
 
+    public static final String SUCCESS = "success";
+    public static final String FAIL = "fail";
 
 
 

@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * Created by zxg on 15/11/6.
- * 核心数据存储类
+ * invoke核心数据存储类
  */
 @Slf4j
 @Service
@@ -23,13 +23,12 @@ public class InvokeRedisManager {
     @Autowired
     private RedisClientTemplate redisClientTemplate;
 
-    //存 invoke
+    //存 invoke,有效期是2天
     public void saveInvoke(String date,InvokeDO invokeDO){
         String key = String.format(RedisKeyBean.invokeListDate, date);
         String jsonString = JsonUtil.objectToJsonStr(invokeDO);
 
-//        log.info("save invoke:"+jsonString);
-        redisClientTemplate.RpushList(key, jsonString);
+        redisClientTemplate.rPushList(key, jsonString, RedisKeyBean.RREDIS_EXP_DAY*2);
     }
 
     // 获得该日期的所有invoker对象

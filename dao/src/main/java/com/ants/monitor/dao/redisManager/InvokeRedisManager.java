@@ -23,12 +23,12 @@ public class InvokeRedisManager {
     @Autowired
     private RedisClientTemplate redisClientTemplate;
 
-    //存 invoke,有效期是2天
+    //存 invoke,有效期是1天
     public void saveInvoke(String date,InvokeDO invokeDO){
         String key = String.format(RedisKeyBean.invokeListDate, date);
         String jsonString = JsonUtil.objectToJsonStr(invokeDO);
 
-        redisClientTemplate.rPushList(key, jsonString, RedisKeyBean.RREDIS_EXP_DAY*2);
+        redisClientTemplate.rPushList(key, jsonString, RedisKeyBean.RREDIS_EXP_DAY);
     }
 
     // 获得该日期的所有invoker对象

@@ -61,7 +61,10 @@
 
 > **注意：**因用autoconfig，若使用mvn clean package -Dmaven.test.skip -U打包，则需在 `web/src/main/webapps/META-INFO/autoconf/auto-conf.xml`中进行初始化数据更改。
 
-#### 2.两种启动方式，选一种即可（本地推荐法一）：
+#### 2.容灾设置，未启动的应用自定义实现报警
+    `AppStopTaskController` 类的todo之处
+    
+#### 3.两种启动方式，选一种即可（本地推荐法一）：
     1）jetty: web/test/java/AntsMonitorServer ->main 方法启动即可
     2）tomcat: 先`mvn clean package -Dmaven.test.skip -U` 打包,而后将war包放在tomcat webapps下启动tomcat即可
 

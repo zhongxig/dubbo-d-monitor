@@ -73,7 +73,7 @@
 
 # 五、更改历史
 
-### 2016.05.01-`monitor-for-mysql`
+### 2016.06.01-`monitor-for-mysql`
 很久没更新了～！！ 为了优化存储和数据展示，参考了zabbix 的部分思路，将数据按时间存储不一致的粒度，且更改数据库存储为mysql，redis仅做缓存，由于该系统目前维护就我*一个人*，因此后续就维护 mysql版本，redis版本暂时不维护：
 > monitor-on-redis 1.1.0:<br>
 1. 新增分支：monitor-for-mysql<br>

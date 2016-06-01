@@ -33,7 +33,7 @@ public class AppChangeRedisManagerImpl implements AppChangeRedisManager {
         List<ApplicationChangeBO> resultList = new ArrayList<>();
         List<String> list = redisClientTemplate.getList( RedisKeyBean.recentInsertKey,0,-1);
         for(String recentString : list){
-            ApplicationChangeBO applicationChangeBO = JsonUtil.jsonStrToObject(recentString,ApplicationChangeBO.class);
+            ApplicationChangeBO applicationChangeBO = JsonUtil.jsonStrToObject(recentString, ApplicationChangeBO.class);
             resultList.add(applicationChangeBO);
         }
         return resultList;
@@ -44,7 +44,7 @@ public class AppChangeRedisManagerImpl implements AppChangeRedisManager {
         List<ApplicationChangeBO> resultList = new ArrayList<>();
         List<String> list = redisClientTemplate.getList( RedisKeyBean.recentDeleteKey,0,-1);
         for(String recentString : list){
-            ApplicationChangeBO applicationChangeBO = JsonUtil.jsonStrToObject(recentString,ApplicationChangeBO.class);
+            ApplicationChangeBO applicationChangeBO = JsonUtil.jsonStrToObject(recentString, ApplicationChangeBO.class);
             resultList.add(applicationChangeBO);
         }
         return resultList;
@@ -60,7 +60,7 @@ public class AppChangeRedisManagerImpl implements AppChangeRedisManager {
         Integer end = start + limit -1;
         List<String> list = redisClientTemplate.getList(thisDayKey, start, end);
         for(String recentString : list){
-            ApplicationChangeBO applicationChangeBO = JsonUtil.jsonStrToObject(recentString,ApplicationChangeBO.class);
+            ApplicationChangeBO applicationChangeBO = JsonUtil.jsonStrToObject(recentString, ApplicationChangeBO.class);
             resultList.add(applicationChangeBO);
         }
         return resultList;
@@ -114,12 +114,12 @@ public class AppChangeRedisManagerImpl implements AppChangeRedisManager {
         }
         //本日删除位记录
         String thisDayKey = String.format(RedisKeyBean.dayChangeKey,thisDay);
-        redisClientTemplate.lPushList(thisDayKey, deleteString, RedisKeyBean.RREDIS_EXP_MONTH);
+        redisClientTemplate.lPushList(thisDayKey, deleteString, RedisKeyBean.RREDIS_EXP_WEEK);
 
         if(!haveDayList.contains(thisDay)){
             String thisMonth = TimeUtil.getYearMonthString(now);
             String monthKey = String.format(RedisKeyBean.monthDayKey,thisMonth);
-            redisClientTemplate.addSet(monthKey,thisDay, RedisKeyBean.RREDIS_EXP_MONTH);
+            redisClientTemplate.addSet(monthKey,thisDay, RedisKeyBean.RREDIS_EXP_WEEK);
             haveDayList.add(thisDay);
         }
     }
@@ -150,11 +150,11 @@ public class AppChangeRedisManagerImpl implements AppChangeRedisManager {
 
         //本月insert位记录
         String thisDayKey = String.format(RedisKeyBean.dayChangeKey,thisDay);
-        redisClientTemplate.lPushList(thisDayKey, insertString, RedisKeyBean.RREDIS_EXP_MONTH);
+        redisClientTemplate.lPushList(thisDayKey, insertString, RedisKeyBean.RREDIS_EXP_WEEK);
         if(!haveDayList.contains(thisDay)){
             String thisMonth = TimeUtil.getYearMonthString(now);
             String monthKey = String.format(RedisKeyBean.monthDayKey,thisMonth);
-            redisClientTemplate.addSet(monthKey,thisDay, RedisKeyBean.RREDIS_EXP_MONTH);
+            redisClientTemplate.addSet(monthKey,thisDay, RedisKeyBean.RREDIS_EXP_WEEK);
             haveDayList.add(thisDay);
         }
     }

@@ -49,8 +49,9 @@ function initData() {
     var providers_category_html = '<span class="badge badge-danger providers">提供者</span>';
     var consumers_category_html = '<span class="badge badge-success consumers">消费者</span>';
 
+    var appList = allAppResutMap.appList;
     var map = {
-        list: allAppResutMap.appList,
+        list: appList,
         categoryFunc: function () {
             var categoty_html = '';
             var isProvider = this.isProvider;
@@ -699,159 +700,33 @@ function aPPRelationBarChart(type) {
     var success_option = JSON.parse(storage.getItem(success_key));
     var fail_option = JSON.parse(storage.getItem(fail_key));
     if (success_option == undefined) {
-        $.get(headerUrl + "/monitor/application/getSuccessByConsumerOnHour", {
-            type: type,
-            source: appName
-        }, function (resultVO) {
-            if (resultVO.success) {
-                var resultMap = resultVO.data;
-                var time_data_array = ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'];
-                var legend_data_array = [];
-                var success_series_array = [];
-                var fail_series_array = [];
-                $.each(resultMap, function (consumerName, hourSumMap) {
-                    legend_data_array.push(consumerName);
-                    var success_array = [];
-                    var fail_array = [];
-                    $.each(time_data_array, function (i, time) {
-                        var sumMap = hourSumMap[time];
-                        if(sumMap == undefined){
-                            success_array.push(0);
-                            fail_array.push(0);
-                        }else {
-                            var success = sumMap["success"];
-                            var fail = sumMap["fail"];
-                            success_array.push(success);
-                            fail_array.push(fail);
-                        }
-                    });
-
-                    var success_series = {
-                        name: consumerName,
-                        type: 'line',
-                        data: success_array,
-                        markPoint: {
-                            data: [
-                                {type: 'max', name: '最大值'},
-                                {type: 'min', name: '最小值'}
-                            ]
-                        },
-                        markLine: {
-                            data: [
-                                {type: 'average', name: '平均值'}
-                            ]
-                        }
-                    };
-                    success_series_array.push(success_series);
-                    var fail_series = {
-                        name: consumerName,
-                        type: 'line',
-                        data: fail_array,
-                        markPoint: {
-                            data: [
-                                {type: 'max', name: '最大值'},
-                                {type: 'min', name: '最小值'}
-                            ]
-                        },
-                        markLine: {
-                            data: [
-                                {type: 'average', name: '平均值'}
-                            ]
-                        }
-                    };
-                    fail_series_array.push(fail_series)
-                });
-
-                var success_option = {
-                    title : {
-                        text: '成功的服务次数'
-                    },
-                    tooltip: {
-                        trigger: 'axis'
-                    },
-
-                    legend: {
-                        data: legend_data_array,
-                        "y":"23"
-                    },
-                    toolbox: {
-                        show: true,
-                        feature: {
-                            mark: {show: true},
-                            magicType: {show: true, type: ['line', 'bar']},
-                            restore: {show: true},
-                            saveAsImage: {show: true}
-                        }
-                    },
-                    calculable: true,
-                    xAxis: [
-                        {
-                            type: 'category',
-                            boundaryGap: false,
-                            data: time_data_array,
-                            axisLabel: {formatter: '{value}时'}
-                        }
-                    ],
-                    yAxis: [
-                        {
-                            type: 'value',
-                            axisLabel: {
-                                formatter: '{value}次'
-                            }
-                        }
-                    ],
-                    series: success_series_array
-                };
-                var fail_option = {
-                    title : {
-                        text: '失败的服务次数'
-                    },
-                    tooltip: {
-                        trigger: 'axis'
-                    },
-
-                    legend: {
-                        data: legend_data_array,
-                        "y":"23"
-                    },
-                    toolbox: {
-                        show: true,
-                        feature: {
-                            mark: {show: true},
-                            magicType: {show: true, type: ['line', 'bar']},
-                            restore: {show: true},
-                            saveAsImage: {show: true}
-                        }
-                    },
-                    calculable: true,
-                    xAxis: [
-                        {
-                            type: 'category',
-                            boundaryGap: false,
-                            data: time_data_array,
-                            axisLabel: {formatter: '{value}'}
-                        }
-                    ],
-                    yAxis: [
-                        {
-                            type: 'value',
-                            axisLabel: {
-                                formatter: '{value}次'
-                            }
-                        }
-                    ],
-                    series: fail_series_array
-                };
-                storage.setItem(success_key, JSON.stringify(success_option));
-                storage.setItem(fail_key, JSON.stringify(fail_option));
-
-                successChart.setOption(success_option);
-                failChart.setOption(fail_option);
-
-                successChart.hideLoading();
-                failChart.hideLoading();
-            }
-        });
+        // 按小时展示
+        if(type == 'Today' || type == 'Yesterday') {
+            $.get(headerUrl + "/monitor/application/getSuccessByConsumerOnHour", {
+                type: type,
+                source: appName
+            }, function (resultVO) {
+                if (resultVO.success) {
+                    var resultMap = resultVO.data;
+                    var time_data_array = ['00时', '01时', '02时', '03时', '04时', '05时', '06时', '07时', '08时', '09时', '10时', '11时', '12时', '13时', '14时', '15时', '16时', '17时', '18时', '19时', '20时', '21时', '22时', '23时'];
+                    chartsInDayOrHour(resultMap, time_data_array, success_key, fail_key, successChart, failChart);
+                }
+            });
+        }
+        // 按天展示
+        if(type == 'Seven_DAY' || type == 'Fifteen_DAT') {
+            $.get(headerUrl + "/monitor/application/getSuccessByConsumerOnDay", {
+                type: type,
+                source: appName
+            }, function (resultVO) {
+                if (resultVO.success) {
+                    var finalMap = resultVO.data;
+                    var resultMap = finalMap['dataMap'];
+                    var time_data_array =  finalMap['dateList'];
+                    chartsInDayOrHour(resultMap, time_data_array, success_key, fail_key, successChart, failChart);
+                }
+            });
+        }
 
 
     } else {
@@ -866,5 +741,152 @@ function aPPRelationBarChart(type) {
 
 }
 
+//成功失败的chart
+function chartsInDayOrHour(resultMap,time_data_array,success_key,fail_key,successChart,failChart){
+    var legend_data_array = [];
+    var success_series_array = [];
+    var fail_series_array = [];
+    $.each(resultMap, function (consumerName, hourSumMap) {
+        legend_data_array.push(consumerName);
+        var success_array = [];
+        var fail_array = [];
+        $.each(time_data_array, function (i, time) {
+            var sumMap = hourSumMap[time.replace('时','')];
+            if(sumMap == undefined){
+                success_array.push(0);
+                fail_array.push(0);
+            }else {
+                var success = sumMap["success"];
+                var fail = sumMap["fail"];
+                success_array.push(success);
+                fail_array.push(fail);
+            }
+        });
+
+        var success_series = {
+            name: consumerName,
+            type: 'line',
+            data: success_array,
+            markPoint: {
+                data: [
+                    {type: 'max', name: '最大值'},
+                    {type: 'min', name: '最小值'}
+                ]
+            },
+            markLine: {
+                data: [
+                    {type: 'average', name: '平均值'}
+                ]
+            }
+        };
+        success_series_array.push(success_series);
+        var fail_series = {
+            name: consumerName,
+            type: 'line',
+            data: fail_array,
+            markPoint: {
+                data: [
+                    {type: 'max', name: '最大值'},
+                    {type: 'min', name: '最小值'}
+                ]
+            },
+            markLine: {
+                data: [
+                    {type: 'average', name: '平均值'}
+                ]
+            }
+        };
+        fail_series_array.push(fail_series)
+    });
+
+    var success_option = {
+        title : {
+            text: '成功的服务次数'
+        },
+        tooltip: {
+            trigger: 'axis'
+        },
+
+        legend: {
+            data: legend_data_array,
+            "y":"23"
+        },
+        toolbox: {
+            show: true,
+            feature: {
+                mark: {show: true},
+                magicType: {show: true, type: ['line', 'bar']},
+                restore: {show: true},
+                saveAsImage: {show: true}
+            }
+        },
+        calculable: true,
+        xAxis: [
+            {
+                type: 'category',
+                boundaryGap: false,
+                data: time_data_array,
+                axisLabel: {formatter: '{value}'}
+            }
+        ],
+        yAxis: [
+            {
+                type: 'value',
+                axisLabel: {
+                    formatter: '{value}次'
+                }
+            }
+        ],
+        series: success_series_array
+    };
+    var fail_option = {
+        title : {
+            text: '失败的服务次数'
+        },
+        tooltip: {
+            trigger: 'axis'
+        },
+
+        legend: {
+            data: legend_data_array,
+            "y":"23"
+        },
+        toolbox: {
+            show: true,
+            feature: {
+                mark: {show: true},
+                magicType: {show: true, type: ['line', 'bar']},
+                restore: {show: true},
+                saveAsImage: {show: true}
+            }
+        },
+        calculable: true,
+        xAxis: [
+            {
+                type: 'category',
+                boundaryGap: false,
+                data: time_data_array,
+                axisLabel: {formatter: '{value}'}
+            }
+        ],
+        yAxis: [
+            {
+                type: 'value',
+                axisLabel: {
+                    formatter: '{value}次'
+                }
+            }
+        ],
+        series: fail_series_array
+    };
+    storage.setItem(success_key, JSON.stringify(success_option));
+    storage.setItem(fail_key, JSON.stringify(fail_option));
+
+    successChart.setOption(success_option);
+    failChart.setOption(fail_option);
+
+    successChart.hideLoading();
+    failChart.hideLoading();
+}
 
 

@@ -42,8 +42,13 @@
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
         </dependency>
+
         <!--数据库连接池-->
         <dependency>
             <groupId>com.alibaba</groupId>
@@ -103,6 +108,9 @@
         </dependency>
         <!-- log end -->
 
+
+
+
         <dependency>
             <groupId>com.101tec</groupId>
             <artifactId>zkclient</artifactId>
@@ -117,6 +125,7 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context-support</artifactId>
         </dependency>
+
 
     </dependencies>
 
@@ -141,7 +150,6 @@
             <plugin>
                 <groupId>com.alibaba.citrus.tool</groupId>
                 <artifactId>autoconfig-maven-plugin</artifactId>
-
             </plugin>
 
         </plugins>

@@ -12,6 +12,7 @@ import com.ants.monitor.dao.redisManager.InvokeReportManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,12 +21,17 @@ import java.util.*;
 /**
  * Created by zxg on 16/1/28.
  * 13:49
- * 报表数据，每日凌晨00：01分开始统计
+ * 报表数据，每小时统计一次开始统计
  */
 @RestController
 @RequestMapping("/monitor/invokeReportTask")
 @Slf4j
 public class InvokeReportTaskController {
+
+
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
     @Autowired
     private InvokeReportManager invokeReportManager;
     @Autowired
@@ -36,21 +42,88 @@ public class InvokeReportTaskController {
     @Autowired
     private HostService hostService;
 
-    //每天凌晨 00:01 统计每个应用昨天的相互调用情况
+    //每天每个小时小时 :01
+    @Scheduled(cron = "0 1 * * * ?")
+    public void everyHourDo(){
+        //应用间调用数量
+        AppSumOnHourProcess appSumOnHourProcess = new AppSumOnHourProcess();
+        taskExecutor.execute(appSumOnHourProcess);
+
+        //应用作为提供者 每小时被消费的数量
+        AppConsumerOnHourProcess appConsumerOnHourProcess = new AppConsumerOnHourProcess();
+        taskExecutor.execute(appConsumerOnHourProcess);
+    }
+
+    //每天凌晨 00：01分执行
     @Scheduled(cron = "0 1 0 * * ?")
-//    @Scheduled(cron = "0 58 20 * * ?")
-    public void appSumOnDay() {
-        String yesterDay = TimeUtil.getBeforDateByNumber(new Date(), -1);
+    public void everyDayDo(){
+
+        //应用作为提供者 每天被消费的数量
+        AppConsumerOnDayProcess appConsumerOnDayProcess = new AppConsumerOnDayProcess();
+        taskExecutor.execute(appConsumerOnDayProcess);
+
+    }
+
+    //应用之间调用总数
+    private class AppSumOnHourProcess implements Runnable {
+        @Override
+        public void run() {
+            try {
+                appSumOnHour();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    //应用提供每小时 成功、失败数
+    private class AppConsumerOnHourProcess implements Runnable {
+        @Override
+        public void run() {
+            try {
+                appConsumerHourInHour();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    //应用提供每天 成功、失败数
+    private class AppConsumerOnDayProcess implements Runnable {
+        @Override
+        public void run() {
+            try {
+                appConsumerOnHourToDay();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    //每天每个小时小时 :01 统计每个应用每个小时相互调用情况
+    private void appSumOnHour() {
+        Date now = new Date();
+        Date lastHourDate = TimeUtil.getBeforHourByNumber(now, -1);
+        String lastHourDay = TimeUtil.getDateString(now);
+        String lastHour = TimeUtil.getHourString(lastHourDate);
+
         Set<String> allApplication = applicationService.getAllApplications();
 
 
-        List<InvokeDO> invokeDOList = invokeRedisManager.getInvokeByDate(yesterDay);
+        List<InvokeDO> invokeDOList = invokeRedisManager.getInvokeByHour(lastHour);
+
         for (String applicationName : allApplication) {
-            Map<String, Map<String, Integer>> appMap = new HashMap<>();
-            Map<String, Integer> providerMap = new HashMap<>();
-            Map<String, Integer> consumerMap = new HashMap<>();
-            appMap.put(Constants.PROVIDER, providerMap);
-            appMap.put(Constants.CONSUMER, consumerMap);
+            Map<String,Map<String,Integer>> appDayMap = invokeReportManager.getAppRelationByAppOnDay(applicationName, lastHourDay);
+            Map<String, Integer> providerMap = appDayMap.get(Constants.PROVIDER);
+            Map<String, Integer> consumerMap = appDayMap.get(Constants.CONSUMER);
+
+            if(providerMap == null){
+                providerMap = new HashMap<>();
+                appDayMap.put(Constants.PROVIDER,providerMap);
+            }
+            if(consumerMap == null){
+                consumerMap = new HashMap<>();
+                appDayMap.put(Constants.CONSUMER,consumerMap);
+            }
 
             Boolean has_pro = false;
             Boolean has_consu = false;
@@ -86,31 +159,33 @@ public class InvokeReportTaskController {
                     has_consu = true;
                 }
             }
-            if(!has_pro){
-                appMap.remove(Constants.PROVIDER);
+            if (!has_pro) {
+                appDayMap.remove(Constants.PROVIDER);
             }
-            if(!has_consu){
-                appMap.remove(Constants.CONSUMER);
+            if (!has_consu) {
+                appDayMap.remove(Constants.CONSUMER);
             }
-            if(has_consu || has_pro) {
-                invokeReportManager.saveAppRelationByAppOnDay(applicationName, yesterDay, appMap);
+
+            if (has_consu || has_pro) {
+                invokeReportManager.saveAppRelationByAppOnDay(applicationName, lastHourDay, appDayMap);
             }
         }
     }
 
+    // 每小时的数据调用
+    private void appConsumerHourInHour() {
+        Date now = new Date();
+        Date lastHourDate = TimeUtil.getBeforHourByNumber(now, -1);
+        String lastHourDay = TimeUtil.getDateString(now);
+        String lastHour = TimeUtil.getHourString(lastHourDate);
 
-
-    //每天凌晨 00:01 统计每个应用昨天的每小时消费者消费情况
-    @Scheduled(cron = "0 1 0 * * ?")
-//    @Scheduled(cron = "0 58 20 * * ?")
-    public void appConsumerOnHour() {
-        String yesterDay = TimeUtil.getBeforDateByNumber(new Date(), -1);
         Set<String> allApplication = applicationService.getAllApplications();
 
+        List<InvokeDO> invokeDOList = invokeRedisManager.getInvokeByHour(lastHour);
 
-        List<InvokeDO> invokeDOList = invokeRedisManager.getInvokeByDate(yesterDay);
         for (String applicationName : allApplication) {
-            Map<String, Map<String,?>> saveMap = new HashMap<>();
+            Map<String, Map<String,?>> saveMap = (Map<String, Map<String, ?>>) invokeReportManager.getConsumerByAppOnHour(applicationName,lastHourDay);
+
             Boolean is_ok = false;
 
             for(InvokeDO invokeDO : invokeDOList){
@@ -133,22 +208,18 @@ public class InvokeReportTaskController {
                     // app 作为提供者，被消费
                     Integer success = invokeDO.getSuccess();
                     Integer fail = invokeDO.getFailure();
-                    // 时间转化为小时
-                    Long invokeTime = invokeDO.getInvokeTime();
-                    Long afterHour = (invokeTime / (60 * 1000 * 60)) * (60 * 60 * 1000);
-                    String hourTime = TimeUtil.getMinuteString(new Date(afterHour));
                     // 存储
                     Map<String, Object> hourSumMap = (Map<String, Object>) saveMap.get(appName);
                     if(null == hourSumMap){
                         hourSumMap = new HashMap<>();
                         saveMap.put(appName, hourSumMap);
                     }
-                    Map<String,Integer> sumMap = (Map<String, Integer>) hourSumMap.get(hourTime);
+                    Map<String,Integer> sumMap = (Map<String, Integer>) hourSumMap.get(lastHour);
                     if(sumMap == null){
                         sumMap = new HashMap<>();
                         sumMap.put(MonitorConstants.SUCCESS,success);
                         sumMap.put(MonitorConstants.FAIL,fail);
-                        hourSumMap.put(hourTime,sumMap);
+                        hourSumMap.put(lastHour,sumMap);
                     }else{
                         success += sumMap.get(MonitorConstants.SUCCESS);
                         fail += sumMap.get(MonitorConstants.FAIL);
@@ -159,8 +230,55 @@ public class InvokeReportTaskController {
             }
 
             if(is_ok) {
-                invokeReportManager.saveConsumerByAppOnHour(applicationName, yesterDay, saveMap);
+                invokeReportManager.saveConsumerByAppOnHour(applicationName, lastHourDay, saveMap);
             }
+
+        }
+
+
+
+
+    }
+
+    //每天凌晨 00:01 统计每个应用昨天的每小时消费者消费情况，汇总为一天
+    private void appConsumerOnHourToDay() {
+        String yesterday = TimeUtil.getBeforDateByNumber(new Date(), -1);
+        Set<String> allApplication = applicationService.getAllApplications();
+
+        for (String applicationName : allApplication) {
+            Map<String, Map<String,?>> saveMap = (Map<String, Map<String, ?>>) invokeReportManager.getConsumerByAppOnHour(applicationName,yesterday);
+
+            Map<String,Map<String,Integer>> dayMap = new HashMap<>();
+
+            for(Map.Entry<String, Map<String,?>> mapEntry:saveMap.entrySet()){
+                String consumerApp = mapEntry.getKey();
+                Map<String, ?> hourSumMap = mapEntry.getValue();
+
+                Boolean is_ok = false;
+                Integer success = 0;
+                Integer fail = 0;
+                for(Map.Entry<String,?> hourEntry : hourSumMap.entrySet()){
+                    Map<String,Integer> sumMap = (Map<String, Integer>) hourEntry.getValue();
+
+                    success += sumMap.get(MonitorConstants.SUCCESS);
+                    fail += sumMap.get(MonitorConstants.FAIL);
+                    is_ok = true;
+                }
+
+                if(is_ok) {
+                    // 存当日 sourceAPP 被 consumerApp 消费的成功数
+                    Map<String, Integer> numberMap = new HashMap<>();
+                    numberMap.put(MonitorConstants.SUCCESS, success);
+                    numberMap.put(MonitorConstants.FAIL, fail);
+                    dayMap.put(consumerApp,numberMap);
+                }
+
+            }
+
+            if(!dayMap.isEmpty()){
+                invokeReportManager.saveConsumerByAppOnDay(applicationName,yesterday,dayMap);
+            }
+
         }
     }
 }

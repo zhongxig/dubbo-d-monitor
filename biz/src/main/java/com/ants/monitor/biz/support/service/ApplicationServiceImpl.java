@@ -8,6 +8,7 @@ import com.ants.monitor.bean.MonitorConstants;
 import com.ants.monitor.bean.bizBean.ApplicationBO;
 import com.ants.monitor.bean.bizBean.HostBO;
 import com.ants.monitor.bean.bizBean.ServiceBO;
+import com.ants.monitor.biz.dubboService.DubboMonitorService;
 import com.ants.monitor.biz.dubboService.RegistryContainer;
 import com.ants.monitor.common.tools.Tool;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,8 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Autowired
     private RegistryContainer registryContainer;
+    @Autowired
+    private DubboMonitorService dubboMonitorService;
 
     @Override
     public Set<String> getAllApplications() {
@@ -223,7 +226,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         String host = url.getHost();
         String port = String.valueOf(url.getPort());
         HostBO hostBO = new HostBO(host,port);
-        String finalTime = registryContainer.getServiceConsumerTime(serviceName);
+        String finalTime = dubboMonitorService.getServiceConsumerTime(serviceName);
 
         Map<String,Set<ServiceBO>> thisServiceMap = applicationBO.getServiceMap();
         if(null == thisServiceMap) thisServiceMap = new HashMap<>();

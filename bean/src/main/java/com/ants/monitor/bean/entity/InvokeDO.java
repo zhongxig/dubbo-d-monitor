@@ -6,11 +6,11 @@ import java.util.Date;
 
 @Data
 public class InvokeDO {
-    private Integer autoId;
-
-    private String id;
+    private String uuId;
 
     private String application;
+
+    private String appType;
 
     private String service;
 
@@ -24,10 +24,6 @@ public class InvokeDO {
 
     private String providerPort;
 
-    private String appType;
-
-    private Long invokeTime;
-
     private Integer success;
 
     private Integer failure;
@@ -40,20 +36,11 @@ public class InvokeDO {
 
     private Integer maxConcurrent;
 
-    private Date invokeDate;
+    private String invokeDate;
+
+    private String invokeHour;
+
+    private Long invokeTime;
 
     private Date gmtCreate;
-    private Date gmtModified;
-
-//
-//    public String getAppType() {
-//        if (appType.isEmpty()) {
-//            return "provider";
-//        }
-//        return appType;
-//    }
-
-
-    // =============辅助==
-    private String invokeDateString;
 }

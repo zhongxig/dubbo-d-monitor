@@ -57,7 +57,7 @@ public class InvokeReportManagerImpl implements InvokeReportManager {
             String valueString = JsonUtil.objectToJsonStr(valueMap);
             saveMap.put(entry.getKey(),valueString);
         }
-        redisClientTemplate.setMap(key, saveMap, RedisKeyBean.RREDIS_EXP_DAY * 15);
+        redisClientTemplate.setMap(key, saveMap, RedisKeyBean.RREDIS_EXP_DAY * 2);
     }
 
     @Override
@@ -72,6 +72,35 @@ public class InvokeReportManagerImpl implements InvokeReportManager {
         for(Map.Entry<String,String> entry : redisMap.entrySet()){
             String valueString = entry.getValue();
             Map<String, ?> valueMap = JsonUtil.jsonStrToMap(valueString);
+            result.put(entry.getKey(),valueMap);
+        }
+        return result;
+    }
+
+    @Override
+    public void saveConsumerByAppOnDay(String sourceApp, String dayTime, Map<String, Map<String, Integer>> reportMap) {
+        String key = String.format(RedisKeyBean.appConsumerSumOnDayKEY,sourceApp,dayTime);
+        Map<String,String> saveMap = new HashMap<>();
+        for(Map.Entry<String, Map<String,Integer>> entry : reportMap.entrySet()){
+            Map<String,?> valueMap = entry.getValue();
+            String valueString = JsonUtil.objectToJsonStr(valueMap);
+            saveMap.put(entry.getKey(),valueString);
+        }
+        redisClientTemplate.setMap(key, saveMap, RedisKeyBean.RREDIS_EXP_DAY * 15);
+    }
+
+    @Override
+    public Map<String, Map<String, Integer>> getConsumerByAppOnDay(String sourceApp, String dayTime) {
+        String key = String.format(RedisKeyBean.appConsumerSumOnDayKEY,sourceApp,dayTime);
+        Map<String,String> redisMap = redisClientTemplate.getAllHash(key);
+
+        Map<String, Map<String, Integer>> result = new HashMap<>();
+        if (redisMap.isEmpty()) {
+            return result;
+        }
+        for(Map.Entry<String,String> entry : redisMap.entrySet()){
+            String valueString = entry.getValue();
+            Map<String, Integer> valueMap = JsonUtil.jsonStrToMap(valueString);
             result.put(entry.getKey(),valueMap);
         }
         return result;

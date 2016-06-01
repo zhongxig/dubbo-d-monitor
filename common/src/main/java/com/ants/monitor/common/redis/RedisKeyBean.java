@@ -27,19 +27,24 @@ public interface RedisKeyBean {
     String appPhoneMapKey = SYSTEM_PREFIX+"app_phone_map";
 
     /*========有效期的key==============*/
-    // 该日期的invoke对象，2天
-    String invokeListDate = SYSTEM_PREFIX+"invoke_list_date_%s";
+    // 该日期的invoke对象，2小时
+    String invokeListHour = SYSTEM_PREFIX+"invoke_list_hour_%s";
 
-    //按日期存储详细变化,一个月
+    //查到method日期的数据 service_method_day，1个小时
+    String invokeMethodDayKey = SYSTEM_PREFIX+"invoke_method_%s_%s_%s";
+
+    //按日期存储详细变化,一周
     String dayChangeKey = SYSTEM_PREFIX+"month_app_change_list_%s";
-    //存这月多少日期有变化，一个月
+    //存这月多少日期有变化，一周
     String monthDayKey = SYSTEM_PREFIX+"month_day_app_change_%s";
 
 
     //按日统计app的交互数,15天
     String appInvokeSumOnDayKEY = SYSTEM_PREFIX+"%s_app_sum_on_day_%s";
-    //按小时统计app消费者的每小时消费情况，15天
+    //按小时统计app消费者的每小时消费情况，2天
     String appConsumerSumOnHourKEY = SYSTEM_PREFIX+"%s_app_consumer_on_hour_%s";
+    //按日统计app消费者的每日情况，15天
+    String appConsumerSumOnDayKEY = SYSTEM_PREFIX+"%s_app_consumer_on_day_%s";
 
     /*===not used=====*/
     /**每日用户的ip：name**/

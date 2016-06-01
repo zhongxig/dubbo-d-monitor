@@ -1,6 +1,7 @@
 package com.ants.monitor.common.tools;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -55,7 +56,7 @@ public class TimeUtil {
             calendar.setTime(dateFormat.parse(date));
             calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
             return dateFormat.format(calendar.getTime());
-        } catch (java.text.ParseException e) {
+        } catch (ParseException e) {
             e.printStackTrace();
         }
         return null;
@@ -67,7 +68,7 @@ public class TimeUtil {
             calendar.setTime(dateFormat.parse(date));
             calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
             return calendar.getTime();
-        } catch (java.text.ParseException e) {
+        } catch (ParseException e) {
             e.printStackTrace();
         }
         return null;
@@ -81,7 +82,7 @@ public class TimeUtil {
             calendar.setTime(dateFormat.parse(date));
             calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
             return dateFormat.format(calendar.getTime());
-        } catch (java.text.ParseException e) {
+        } catch (ParseException e) {
             e.printStackTrace();
         }
         return null;
@@ -98,6 +99,18 @@ public class TimeUtil {
         return getDateString(date);
     }
 
+    // date 的 后n小时,若为负数 则为前n小时
+    public static Date getBeforHourByNumber(Date date,Integer amount){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.HOUR, amount);
+        date = calendar.getTime();
+
+        return date;
+    }
+
+
+
     public static String getDateString(Date date){
         String str2 = dateFormat.format(date);
         return str2;
@@ -108,6 +121,17 @@ public class TimeUtil {
         SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss");
         String str2 = formatter.format(date);
         return str2;
+    }
+
+    public static Date getDateByTimeString(String time){
+        SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss");
+        try {
+            Date d1 = formatter.parse(time);
+            return d1;
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static String getMinuteString(Date date){

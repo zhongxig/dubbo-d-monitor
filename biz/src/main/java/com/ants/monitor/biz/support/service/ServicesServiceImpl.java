@@ -7,6 +7,7 @@ import com.alibaba.dubbo.common.utils.StringUtils;
 import com.ants.monitor.bean.MonitorConstants;
 import com.ants.monitor.bean.bizBean.HostBO;
 import com.ants.monitor.bean.bizBean.ServiceBO;
+import com.ants.monitor.biz.dubboService.DubboMonitorService;
 import com.ants.monitor.biz.dubboService.RegistryContainer;
 import com.ants.monitor.common.tools.Tool;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class ServicesServiceImpl implements ServicesService {
 
     @Autowired
     private RegistryContainer registryContainer;
+
+    @Autowired
+    private DubboMonitorService dubboMonitorService;
 
     @Override
     public Set<String> getAllServicesString() {
@@ -158,7 +162,7 @@ public class ServicesServiceImpl implements ServicesService {
                 }
             }
 
-            String finalTime = registryContainer.getServiceConsumerTime(service);
+            String finalTime = dubboMonitorService.getServiceConsumerTime(service);
             serviceBO.setFinalConsumerTime(finalTime);
             serviceBOMap.put(service,serviceBO);
         }

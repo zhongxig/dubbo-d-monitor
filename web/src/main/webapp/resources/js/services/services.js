@@ -247,8 +247,9 @@ function tableClick() {
 
             var list = [];
             $.each(methodsHost, function (method, hostList) {
+                var method_array = method.split(",");
                 var map = {
-                    method: method,
+                    method_array: method_array,
                     hostList: hostList
                 };
                 list.push(map);
@@ -256,25 +257,32 @@ function tableClick() {
             var map = {
                 'list': list,
                 methodFunction: function () {
-                    var method = this.method;
-                    var method_array = method.split(",");
+                    var method_array = this.method_array;
+                    method_array.sort();
                     // 每4个为一组
-                    var html = '';
-                    $.each(method_array, function (index, method_value) {
-                        html += method_value + ",";
-                        if (index % 3 == 0 && index != 0) {
-                            html += "<br>";
+                    var listArray = [];
+                    var method_list = [];
+                    var size = method_array.length;
+                    for (var i = 0; i < size; i++) {
+                        method_list.push(method_array[i]);
+                        if (i % 3 == 2 && i != size) {
+                            var method_map = {'list': method_list};
+                            listArray.push(method_map);
+                            method_list = new Array();
+                        } else if (i == (size - 1)) {
+                            var method_map = {};
+                            method_map['list'] = method_list;
+                            listArray.push(method_map);
                         }
-                    });
-                    var html_length = html.length;
-                    if (html.charAt(html_length - 1) == ",") html = html.substring(0, html.length - 1);
-                    return html;
+                    }
+                    var html = Mustache.render($('#method_template').html(), {'listArray':listArray});
+                    return html
                 },
                 hostFunction:function(){
-                    var html = ""
+                    var html = "";
                     var hostList = this.hostList;
                     $.each(hostList,function(i,hostBO){
-                        var host = hostBO.host;
+                       var host = hostBO.host;
                         if($.inArray(host,testUrlSet) > -1){
                             html += '<span class="badge badge-success">测试环境：'+hostBO.hostString+ "</span>";
                         }else{
@@ -284,7 +292,7 @@ function tableClick() {
                     return html;
                 }
             };
-            var html = Mustache.render($('#method_template').html(), map);
+            var html = Mustache.render($('#method_host_template').html(), map);
             $("#method").html(html);
         } else {
             $("#method").html("");
@@ -380,6 +388,9 @@ function main_service_section(serviceBO) {
         $("#tab_service_data_btn").removeClass("hidden");
     }
 
+
+
+    //切换 charts 的内容
     $("#tab_service_data_btn").unbind("click").click(function () {
 
         $('#tab_service_relation_btn').parent().removeClass("active");
@@ -389,44 +400,82 @@ function main_service_section(serviceBO) {
         $('#tab_service_relation').removeClass("active");
         $('#tab_service_data').addClass("active");
 
-        if ($("#bar_body").html().trim() == "") {
-
-            var loadingEL = $('#tabbable-custom');
-            Metronic.blockUI(loadingEL);
-            serviceArtChart(serviceBO);
-            Metronic.unblockUI(loadingEL);
-        }
         Amm.changeiframeParentHeight();
 
-        $("#search_method_value").unbind("keypress").bind('keypress', function (event) {
-            if (event.keyCode == "13") {
-
-                var method_value = $(this).val().trim().toUpperCase();
-                var bar_div_array = $("#bar_body > div");
-                $.each(bar_div_array,function(i,obj){
-                    var value = $(obj).data("value").toUpperCase();
-                    if(value.indexOf(method_value) != -1){
-                        var scroll_offset = $(obj).offset();
-                        // 滚动到指定位置
-                        Amm.animate(scroll_offset);
-                        //跳出循环
-                        return false;
-                    }
-                });
-            }
-        });
         return false;
     });
 
+    //点击 方法
+    $(".method_class").unbind("click").click(function () {
+       //判断 是否 可以看数据图
+        if($("#tab_service_data_btn").hasClass("hidden")){
+            return false;
+        }
+        //若自身为active 则不进行后续操作
+        if($(this).hasClass("active")){
+            return false;
+        }
+        // 去除其他active
+        $(".method_class").removeClass("active");
+        //自己+active
+        $(this).addClass("active");
 
+        //跳转到数据图，默认选中今天
+        $("#tab_service_data_btn").trigger('click');
+        $(".relation_bar_options").removeClass("active");
+        $('#relation_bar_day').parent().addClass("active");
+
+        //生成数据图表
+        var serviceName = $("#serviceName").html().trim();
+        var methodName = $(this).data("method").trim();
+        var type = $('#relation_bar_day').data("value");
+
+        $('#serviceNameForCharts').text(methodName);
+        var isUsed = serviceArtChart(serviceName,methodName, type);
+
+        //判断 是否有展示 是否被使用
+        var is_used_span = $(this).children('span').text();
+        if(is_used_span == '' || is_used_span == '无'){
+            var the_span = $(this).children('span');
+            if(isUsed == "true"){
+                the_span.removeClass("badge-danger");
+                the_span.addClass("badge-success");
+                the_span.text('有');
+            }else if(is_used_span == ''){
+                the_span.addClass("badge-danger");
+                the_span.removeClass("badge-success");
+                the_span.text('无');
+            }
+
+        }
+    });
+
+    //  根据日期筛选
     $(".relation_bar_options").unbind("click").click(function () {
 
         var loadingEL = $('#tabbable-custom');
         Metronic.blockUI(loadingEL);
 
         var type = $(this).find('input').data("value");
-        serviceArtChart(serviceBO, type);
+        var serviceName = $("#serviceName").html().trim();
+        var methodName = $(".method_class.active").data("method").trim();
+        var isUsed = serviceArtChart(serviceName,methodName, type);
 
+        //判断 是否有展示 是否被使用
+        var is_used_span = $(".method_class.active").children('span').text();
+        if(is_used_span == '' || is_used_span == '无'){
+            var the_span = $(".method_class.active").children('span');
+            if(isUsed == "true"){
+                the_span.removeClass("badge-danger");
+                the_span.addClass("badge-success");
+                the_span.text('有');
+            }else if(is_used_span == ''){
+                the_span.addClass("badge-danger");
+                the_span.removeClass("badge-success");
+                the_span.text('无');
+            }
+
+        }
         Metronic.unblockUI(loadingEL);
 
     });
@@ -538,344 +587,124 @@ function servicesRelationForceChart(usedApp) {
 }
 
 
-// 生成全局art——tps图和每个方法的图
-function serviceArtChart(serviceBO, type) {
+// 生成art——tps图
+function serviceArtChart(serviceName,methodName, type){
     console.log('start');
-
+    if(serviceName =='' || methodName =='' || type =='' ){
+        return false;
+    }
     if (type == undefined) {
         type = $("#relation_bar_day").data("value");
     }
-
-
-    var serviceName = serviceBO.serviceName;
-
-
-    var methods = serviceBO.methods[0];
-    var methodsSet = methods.split(",");
-
-    // 初始化
-    var ecChart_map = [];// 存每个方法的echart对象
-    var methodChartMap = {
-        'main': {
-            'provider_tps_list': [],
-            'provider_art_list': [],
-            'consumer_tps_list': [],
-            'consumer_art_list': []
+    //准备好容器
+    var tpsChart = echartsEc.init(document.getElementById('tps_bar_echarts'));
+    var artChart = echartsEc.init(document.getElementById('art_bar_echarts'));
+    tpsChart.showLoading({
+        text: 'Loading...',
+        effect: 'bubble',
+        textStyle: {
+            fontSize: 20
         }
-    }; // 存每个方法的每个列表数据
-    var div_list = ['main'];    // 存每个方法名称
-
-    $.each(methodsSet, function (i, method) {
-
-
-        div_list.push(method);
-
-        var map = {
-            'provider_tps_list': [],
-            'provider_art_list': [],
-            'consumer_tps_list': [],
-            'consumer_art_list': []
-        };
-        methodChartMap[method] = map;
     });
-    if ($("#bar_body").html().trim() == "") {
-        //生成 多个div存放bar图
-        var html = Mustache.render($('#bar_template').html(), {'list': div_list});
-        $("#bar_body").html(html);
-        Amm.changeiframeParentHeight();
-    }
-
-    $.each(div_list, function (i, method_name) {
-        var tps_div = method_name + "_tps_bar_echarts";
-        var art_div = method_name + "_art_bar_echarts";
-
-        var tpsChart = echartsEc.init(document.getElementById(tps_div));
-        var artChart = echartsEc.init(document.getElementById(art_div));
-        tpsChart.showLoading({
-            text: 'Loading...',
-            effect: 'bubble',
-            textStyle: {
-                fontSize: 20
-            }
-        });
-        artChart.showLoading({
-            text: 'Loading...',
-            effect: 'bubble',
-            textStyle: {
-                fontSize: 20
-            }
-        });
-        ecChart_map[method_name] = {
-            'tpsChart':tpsChart,
-            'artChart':artChart
-        };
+    artChart.showLoading({
+        text: 'Loading...',
+        effect: 'bubble',
+        textStyle: {
+            fontSize: 20
+        }
     });
 
     var nowDate = Amm.getNowDate();
-    var main_tps_key = nowDate + type + serviceName + "main_tps_serviceArtChart";
-    var main_tps_option = JSON.parse(storage.getItem(main_tps_key));
-    // 存在 走缓存
-    if (main_tps_option != undefined) {
-        // 任务代码
-        $.each(div_list, function (i, method_name) {
-            var chart_map = ecChart_map[method_name];
-            var tpsChart = chart_map['tpsChart'];
-            var artChart = chart_map['artChart'];
+    //缓存里面找一圈
+    var consumer_key = nowDate + type + serviceName+methodName + "consumerApp";
+    var tps_key = nowDate + type + serviceName+methodName + "tps";
+    var art_key = nowDate + type + serviceName+methodName + "art";
+    var consumer = storage.getItem(consumer_key);
+    var tps_option = JSON.parse(storage.getItem(tps_key));
+    var art_option = JSON.parse(storage.getItem(art_key));
 
-            var tps_key = nowDate + type + serviceName + method_name + "_tps_serviceArtChart";
-            var tps_option = JSON.parse(storage.getItem(tps_key));
-            tpsChart.setOption(tps_option);
-            tpsChart.hideLoading();
+    var is_used_key = nowDate + type + serviceName+methodName + "is_used";
+    var is_used = storage.getItem(is_used_key);
+    if(tps_option == undefined){
+        is_used = "false";
+        //从服务器上获得数据
+        // 60*60 小时
+        var timeParticle = 60 * 60;
+        //小数点后保留4位
+        var pointNumber = 4;
+        $.ajax({
+            url: headerUrl + "/monitor/services/getMethodSumOneDay",
+            //同步
+            async: false,
+            data:{serviceName:serviceName,methodName:methodName,type:type},
+            success: function (result) {
+                var time_array = Amm.getHourArray();
+                var resultMap = result.data;
+                var appList = resultMap.appList;
+                var dataMap = resultMap.dataMap;
 
-            var art_key = nowDate + type + serviceName + method_name + "_art_serviceArtChart";
-            var art_option = JSON.parse(storage.getItem(art_key));
-            artChart.setOption(art_option);
-            artChart.hideLoading();
-
-        });
-
-        return false;
-    }
-
-    //横坐标
-    var x_key = "x_minute_list";
-    var x_list = JSON.parse(storage.getItem(x_key));
-    if (x_list == undefined) {
-        x_list = [];
-        for (var i = 0; i < 24; i++) {
-            for (var j = 0; j < 60; j = j + 10) {
-                var a = "";
-                if (i < 10) {
-                    a += "0" + i;
-                }
-                else {
-                    a += i;
-                }
-                a += ":";
-                if (j < 10) {
-                    a += "0" + j;
-                }
-                else {
-                    a += j;
-                }
-                x_list.push(a);
-            }
-        }
-        storage.setItem(x_key, JSON.stringify(x_list));
-    }
+                //涉及的app打印
+                var appHtml = "";
+                $.each(appList,function(i,appName){
+                    appHtml += appName + " ";
+                });
+                consumer = appHtml;
+                storage.setItem(consumer_key,appHtml);
 
 
-    $.get(headerUrl + "/monitor/services/getChartByName", {
-        'serviceName': serviceName,
-        'type': type
-    }, function (resultVO) {
-        if (!resultVO.success) {
-            var html = Mustache.render($('#alert_danger_template').html(), {'msg': "出错啦：" + resultVO.msg});
-            $("#bar_body").prepend(html);
-            return false;
-        }
+                var tps_array = [];
+                var art_array = [];
+                $.each(time_array, function (i, time) {
+                    var hourMap = dataMap[time.replace('时','')];
+                    if(hourMap == undefined){
+                        tps_array.push(0);
+                        art_array.push(0);
+                    }else {
+                        is_used = "true";
+                        var successNum = hourMap['success'];
+                        var elapsedNum = hourMap['elapsed'];
+                        //方法级别的 tps和art统计
+                        var tps = Number(successNum / timeParticle).toFixed(pointNumber) + "";
+                        var art = Number(elapsedNum / successNum).toFixed(1) + "";
+                        tps_array.push(tps);
+                        art_array.push(art);
+                    }
+                });
 
-        //{provider:时间：方法：成功失败值} 四层
-        var resultMap = resultVO.data;
-        var providerMap = resultMap['provider'];
-        var consumerMap = resultMap['consumer'];
-        console.log(new Date().toLocaleString());
+                var tps_option = option_String('tps',time_array,tps_array);
+                var art_option = option_String('art',time_array,art_array);
 
-        $.each(x_list, function (i, minuteTime) {
-            methodChartMap = provider_chart_data(providerMap, minuteTime, div_list, methodChartMap);
-            methodChartMap = consumer_chart_data(consumerMap, minuteTime, div_list, methodChartMap);
-        });
+                storage.setItem(tps_key, JSON.stringify(tps_option));
+                storage.setItem(art_key, JSON.stringify(art_option));
+                storage.setItem(is_used_key, is_used);
 
-        // 生成数据图表
-        $.each(methodChartMap, function (method_name, map_list) {
-            var provider_tps_list = map_list['provider_tps_list'];
-            var provider_art_list = map_list['provider_art_list'];
-            var consumer_tps_list = map_list['consumer_tps_list'];
-            var consumer_art_list = map_list['consumer_art_list'];
+                tpsChart.setOption(tps_option);
+                artChart.setOption(art_option);
 
-            var chart_map = ecChart_map[method_name];
-            var tpsChart = chart_map['tpsChart'];
-            var artChart = chart_map['artChart'];
-
-            var tps_option = option_String(method_name + "-TPS(t/s)", x_list, provider_tps_list, consumer_tps_list);
-            tpsChart.setOption(tps_option);
-            tpsChart.hideLoading();
-
-            var art_option = option_String(method_name + "-ART(ms/t)", x_list, provider_art_list, consumer_art_list);
-            artChart.setOption(art_option);
-            artChart.hideLoading();
-
-
-            var tps_key = nowDate + type + serviceName + method_name + "_tps_serviceArtChart";
-            var art_key = nowDate + type + serviceName + method_name + "_art_serviceArtChart";
-            storage.setItem(tps_key, JSON.stringify(tps_option));
-            storage.setItem(art_key, JSON.stringify(art_option));
-
-        });
-
-
-
-    });
-
-}
-
-
-function consumer_chart_data(consumerMap, minuteTime, div_list, methodChartMap) {
-    // 60s
-    var timeParticle = 60 * 10;
-    //小数点后保留4位
-    var pointNumber = 4;
-    var consumerTimeMap = consumerMap[minuteTime];
-    if (consumerTimeMap == undefined) {
-        $.each(div_list, function (i, method_name) {
-            var listMap = methodChartMap[method_name];
-            var consumer_tps_list = listMap['consumer_tps_list'];
-            var consumer_art_list = listMap['consumer_art_list'];
-            consumer_tps_list.push("0");
-            consumer_art_list.push("0");
-            listMap['consumer_tps_list'] = consumer_tps_list;
-            listMap['consumer_art_list'] = consumer_art_list;
-            methodChartMap[method_name] = listMap;
-        });
-    } else {
-        var all_successNum = 0;
-        var all_elapsedNum = 0;
-
-        var all_method = [];
-        $.each(consumerTimeMap, function (method_name, method_map) {
-            var successNum = method_map['success'];
-            var elapsedNum = method_map['elapsed'];
-            all_successNum += successNum;
-            all_elapsedNum += elapsedNum;
-
-            all_method.push(method_name);
-            //方法级别的 tps和art统计
-            var tps = Number(successNum / timeParticle).toFixed(pointNumber) + "";
-            var art = Number(elapsedNum / successNum).toFixed(1) + "";
-            var listMap = methodChartMap[method_name];
-            var consumer_tps_list = listMap['consumer_tps_list'];
-            var consumer_art_list = listMap['consumer_art_list'];
-
-            consumer_tps_list.push(tps);
-            consumer_art_list.push(art);
-            listMap['consumer_tps_list'] = consumer_tps_list;
-            listMap['consumer_art_list'] = consumer_art_list;
-            methodChartMap[method_name] = listMap;
-        });
-        //此时间段不存在的方法，均插入0
-        $.each(div_list, function (i, method_name) {
-            if ($.inArray(method_name, div_list) == -1) {
-                if (method_name != 'main') {
-                    var listMap = methodChartMap[method_name];
-                    var consumer_tps_list = listMap['consumer_tps_list'];
-                    var consumer_art_list = listMap['consumer_art_list'];
-
-                    consumer_tps_list.push("0");
-                    consumer_art_list.push("0");
-                    listMap['consumer_tps_list'] = consumer_tps_list;
-                    listMap['consumer_art_list'] = consumer_art_list;
-                    methodChartMap[method_name] = listMap;
-                }
+                tpsChart.hideLoading();
+                artChart.hideLoading();
             }
 
         });
 
-        //tps:此为一分钟的数据
-        var all_tps = Number(all_successNum / timeParticle).toFixed(pointNumber) + "";
-        var all_art = Number(all_elapsedNum / all_successNum).toFixed(1) + "";
 
-        var listMap = methodChartMap['main'];
-        var consumer_tps_list = listMap['consumer_tps_list'];
-        var consumer_art_list = listMap['consumer_art_list'];
+    }else{
 
-        consumer_tps_list.push(all_tps);
-        consumer_art_list.push(all_art);
-        listMap['consumer_tps_list'] = consumer_tps_list;
-        listMap['consumer_art_list'] = consumer_art_list;
-        methodChartMap['main'] = listMap;
+        tpsChart.setOption(tps_option);
+        artChart.setOption(art_option);
+
+        tpsChart.hideLoading();
+        artChart.hideLoading();
     }
+    $("#serviceAppForCharts").html(consumer);
+    return is_used;
 
-    return methodChartMap;
+
+
 }
 
-function provider_chart_data(providerMap, minuteTime, div_list, methodChartMap) {
-    // 60s
-    var timeParticle = 60 * 10;
-    //小数点后保留4位
-    var pointNumber = 4;
-    var providerTimeMap = providerMap[minuteTime];
-    if (providerTimeMap == undefined) {
-        $.each(div_list, function (i, method_name) {
-            var listMap = methodChartMap[method_name];
-            var provider_tps_list = listMap['provider_tps_list'];
-            var provider_art_list = listMap['provider_art_list'];
-            provider_tps_list.push("0");
-            provider_art_list.push("0");
-            listMap['provider_tps_list'] = provider_tps_list;
-            listMap['provider_art_list'] = provider_art_list;
-            methodChartMap[method_name] = listMap;
-        });
-    } else {
-        var all_successNum = 0;
-        var all_elapsedNum = 0;
 
-        var all_method = [];
-        $.each(providerTimeMap, function (method_name, method_map) {
-            var successNum = method_map['success'];
-            var elapsedNum = method_map['elapsed'];
-            all_successNum += successNum;
-            all_elapsedNum += elapsedNum;
-
-            all_method.push(method_name);
-            //方法级别的 tps和art统计
-            var tps = Number(successNum / timeParticle).toFixed(pointNumber) + "";
-            var art = Number(elapsedNum / successNum).toFixed(1) + "";
-            var listMap = methodChartMap[method_name];
-            var provider_tps_list = listMap['provider_tps_list'];
-            var provider_art_list = listMap['provider_art_list'];
-            provider_tps_list.push(tps);
-            provider_art_list.push(art);
-            listMap['provider_tps_list'] = provider_tps_list;
-            listMap['provider_art_list'] = provider_art_list;
-            methodChartMap[method_name] = listMap;
-        });
-        //此时间段不存在的方法，均插入0
-        $.each(div_list, function (i, method_name) {
-            if ($.inArray(method_name, div_list) == -1) {
-                if (method_name != 'main') {
-                    var listMap = methodChartMap[method_name];
-                    var provider_tps_list = listMap['provider_tps_list'];
-                    var provider_art_list = listMap['provider_art_list'];
-
-                    provider_tps_list.push("0");
-                    provider_art_list.push("0");
-                    listMap['provider_tps_list'] = provider_tps_list;
-                    listMap['provider_art_list'] = provider_art_list;
-                    methodChartMap[method_name] = listMap;
-                }
-            }
-
-        });
-
-        //tps:此为一分钟的数据
-        var all_tps = Number(all_successNum / timeParticle).toFixed(pointNumber) + "";
-        var all_art = Number(all_elapsedNum / all_successNum).toFixed(1) + "";
-
-        var listMap = methodChartMap['main'];
-        var provider_tps_list = listMap['provider_tps_list'];
-        var provider_art_list = listMap['provider_art_list'];
-
-        provider_tps_list.push(all_tps);
-        provider_art_list.push(all_art);
-        listMap['provider_tps_list'] = provider_tps_list;
-        listMap['provider_art_list'] = provider_art_list;
-        methodChartMap['main'] = listMap;
-    }
-
-    return methodChartMap;
-}
-
-function option_String(titleName, time_data_array_string, provider_data, consumer_data) {
+function option_String(titleName, time_data_array_string, consumer_data) {
 
     var option = {
         title: {
@@ -885,7 +714,7 @@ function option_String(titleName, time_data_array_string, provider_data, consume
             trigger: 'axis'
         },
         legend: {
-            data: ['provider', 'consumer']
+            data: ['consumer']
         },
         toolbox: {
             show: true,
@@ -912,14 +741,20 @@ function option_String(titleName, time_data_array_string, provider_data, consume
         ],
         series: [
             {
-                name: 'provider',
-                type: 'line',
-                data: provider_data
-            },
-            {
                 name: 'consumer',
                 type: 'line',
-                data: consumer_data
+                data: consumer_data,
+                markPoint: {
+                    data: [
+                        {type: 'max', name: '最大值'},
+                        {type: 'min', name: '最小值'}
+                    ]
+                },
+                markLine: {
+                    data: [
+                        {type: 'average', name: '平均值'}
+                    ]
+                }
             }
         ]
     };

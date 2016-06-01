@@ -51,16 +51,16 @@ public class ApplicationController {
             Set<String> groupSet = new HashSet<>();
             Integer appSum = 0;
             for (Map.Entry<String, ApplicationBO> applicationBOEntry : allApplicationsMap.entrySet()) {
-                appSum +=1;
+                appSum += 1;
                 ApplicationBO applicationBO = applicationBOEntry.getValue();
                 String organization = applicationBO.getOrganization();
-                if(!organization.equals("")) {
+                if (!organization.equals("")) {
                     groupSet.add(organization);
                 }
 
                 Set<String> serviceSet = new HashSet<>();
-                Map<String,Set<ServiceBO>> serviceMap = applicationBO.getServiceMap();
-                if(serviceMap != null) {
+                Map<String, Set<ServiceBO>> serviceMap = applicationBO.getServiceMap();
+                if (serviceMap != null) {
                     for (Map.Entry<String, Set<ServiceBO>> entry : serviceMap.entrySet()) {
                         Set<ServiceBO> serviceBOSet = entry.getValue();
                         for (ServiceBO serviceBO : serviceBOSet) {
@@ -77,8 +77,17 @@ public class ApplicationController {
                 appList.add(applicationBO);
             }
 
+            //对appList 排序，按首字母
+            Collections.sort(appList, new Comparator<ApplicationBO>() {
+                @Override
+                public int compare(ApplicationBO o1, ApplicationBO o2) {
+                    Integer o1First = o1.getApplicationName().codePointAt(0);
+                    Integer o2First = o2.getApplicationName().codePointAt(0);
+                    return o1First.compareTo(o2First);
+                }
+            });
 
-            resultMap.put("appSum",appSum);
+            resultMap.put("appSum", appSum);
             resultMap.put("groupSum", groupSet.size());
             resultMap.put("appList", appList);
             resultMap.put("allApp", allApplicationsMap);
@@ -114,21 +123,23 @@ public class ApplicationController {
         resultMap.put("providerConsumer", providerConsumerMap);
 
         // 已appStyle 为 consumer 为主 统计
-        for(String date : recentDateList) {
-            Map<String,Map<String,Integer>> appDayMap = invokeReportManager.getAppRelationByAppOnDay(source,date);
-            if(null != appDayMap &&!appDayMap.isEmpty()){
+        for (String date : recentDateList) {
+            Map<String, Map<String, Integer>> appDayMap = invokeReportManager.getAppRelationByAppOnDay(source, date);
+            if (null != appDayMap && !appDayMap.isEmpty()) {
 
-                for(Map.Entry<String,Map<String,Integer>> appDayEntry : appDayMap.entrySet()){
+                for (Map.Entry<String, Map<String, Integer>> appDayEntry : appDayMap.entrySet()) {
                     String appType = appDayEntry.getKey();
-                    Map<String,Integer> dayMap = appDayEntry.getValue();
+                    Map<String, Integer> dayMap = appDayEntry.getValue();
 
                     Map<String, Integer> resultTypeMap = (Map<String, Integer>) resultMap.get(appType);
-                    for(Map.Entry<String,Integer> dayEntry:dayMap.entrySet()){
+                    for (Map.Entry<String, Integer> dayEntry : dayMap.entrySet()) {
                         String appName = dayEntry.getKey();
                         Integer sum = dayEntry.getValue();
 
                         Integer oldSum = resultTypeMap.get(appName);
-                        if(oldSum == null) {oldSum = 0;}
+                        if (oldSum == null) {
+                            oldSum = 0;
+                        }
                         sum += oldSum;
                         resultTypeMap.put(appName, sum);
                     }
@@ -150,8 +161,8 @@ public class ApplicationController {
                 map.put(Constants.PROVIDER, providerSum);
                 providerConsumerMap.put(providerName, map);
                 providerMap.remove(providerName);
-            }else{
-                if(!providerKeySet.contains(providerName)) {
+            } else {
+                if (!providerKeySet.contains(providerName)) {
                     providerMap.put(providerName, sum);
                 }
             }
@@ -163,7 +174,7 @@ public class ApplicationController {
                 providerConsumerMap.get(consumerName).put(Constants.CONSUMER, consumerSum);
                 consumerMap.remove(consumerName);
             } else {
-                if(!consumerKeySet.contains(consumerName)) {
+                if (!consumerKeySet.contains(consumerName)) {
                     consumerMap.put(consumerName, sum);
                 }
             }
@@ -176,7 +187,7 @@ public class ApplicationController {
     public
     @ResponseBody
     ResultVO getSuccessByConsumerOnHour(String type, String source) {
-        //{consumers : time : success/fial}
+        //{consumers : time : success/fail}
         Map<String, Object> resultMap = new HashMap<>();
 
 
@@ -187,34 +198,34 @@ public class ApplicationController {
 
         List<String> recentDateList = getRecentDay(type);
 
-        for(String date : recentDateList) {
-            Map<String,Object> map = (Map<String, Object>) invokeReportManager.getConsumerByAppOnHour(source,date);
-            if(null != map && !map.isEmpty()){
-                for(Map.Entry<String,Object> consumerEntry : map.entrySet()){
+        for (String date : recentDateList) {
+            Map<String, Object> map = (Map<String, Object>) invokeReportManager.getConsumerByAppOnHour(source, date);
+            if (null != map && !map.isEmpty()) {
+                for (Map.Entry<String, Object> consumerEntry : map.entrySet()) {
                     String consumerName = consumerEntry.getKey();
-                    Map<String,Object> timeMap = (Map<String, Object>) consumerEntry.getValue();
+                    Map<String, Object> timeMap = (Map<String, Object>) consumerEntry.getValue();
 
                     Map<String, Object> resultTimeMap = (Map<String, Object>) resultMap.get(consumerName);
-                    if(resultTimeMap == null){
+                    if (resultTimeMap == null) {
                         resultTimeMap = new HashMap<>();
-                        resultMap.put(consumerName,resultTimeMap);
+                        resultMap.put(consumerName, resultTimeMap);
                     }
-                    for(Map.Entry<String,Object> timeEntry: timeMap.entrySet()){
+                    for (Map.Entry<String, Object> timeEntry : timeMap.entrySet()) {
                         String time = timeEntry.getKey();
-                        Map<String,Integer> sumMap = (Map<String, Integer>) timeEntry.getValue();
+                        Map<String, Integer> sumMap = (Map<String, Integer>) timeEntry.getValue();
 
                         Map<String, Integer> resultSumMap = (Map<String, Integer>) resultTimeMap.get(time);
-                        if(resultSumMap == null){
+                        if (resultSumMap == null) {
                             resultSumMap = new HashMap<>();
-                            resultTimeMap.put(time,resultSumMap);
+                            resultTimeMap.put(time, resultSumMap);
                         }
-                        Integer resultSuccessNum = resultSumMap.get(MonitorConstants.SUCCESS) == null? 0:resultSumMap.get(MonitorConstants.SUCCESS);
-                        Integer resultFailNum = resultSumMap.get(MonitorConstants.FAIL) == null? 0:resultSumMap.get(MonitorConstants.FAIL);
+                        Integer resultSuccessNum = resultSumMap.get(MonitorConstants.SUCCESS) == null ? 0 : resultSumMap.get(MonitorConstants.SUCCESS);
+                        Integer resultFailNum = resultSumMap.get(MonitorConstants.FAIL) == null ? 0 : resultSumMap.get(MonitorConstants.FAIL);
 
                         resultSuccessNum += sumMap.get(MonitorConstants.SUCCESS);
                         resultFailNum += sumMap.get(MonitorConstants.FAIL);
-                        resultSumMap.put(MonitorConstants.SUCCESS,resultSuccessNum);
-                        resultSumMap.put(MonitorConstants.FAIL,resultFailNum);
+                        resultSumMap.put(MonitorConstants.SUCCESS, resultSuccessNum);
+                        resultSumMap.put(MonitorConstants.FAIL, resultFailNum);
                     }
                 }
             }
@@ -223,13 +234,63 @@ public class ApplicationController {
         //补充为0的数据
         for (String consumerName : consumerSet) {
             Map<String, Object> hourSumMap = (Map<String, Object>) resultMap.get(consumerName);
-            if(null == hourSumMap){
+            if (null == hourSumMap) {
                 hourSumMap = new HashMap<>();
-                resultMap.put(consumerName,hourSumMap);
+                resultMap.put(consumerName, hourSumMap);
             }
         }
 
         return ResultVO.wrapSuccessfulResult(resultMap);
+
+    }
+
+    // 按日期:15天
+    @RequestMapping(value = "/getSuccessByConsumerOnDay", method = RequestMethod.GET)
+    public
+    @ResponseBody
+    ResultVO getSuccessByConsumerOnDay(String type, String source) {
+        //{consumers：day: success/fail}
+        //recentDateList
+        Map<String, Object> finalMap = new HashMap<>();
+        Map<String, Object> resultDataMap = new HashMap<>();
+
+        finalMap.put("dataMap",resultDataMap);
+
+
+
+        ApplicationBO applicationBO = applicationService.getApplicationsBOMap().get(source);
+        Set<String> consumerSet = applicationBO.getConsumersSet();
+
+        if (consumerSet == null) consumerSet = new HashSet<>();
+
+        List<String> recentDateList = getRecentDay(type);
+
+        finalMap.put("dateList",recentDateList);
+        for (String date : recentDateList) {
+            Map<String, Map<String, Integer>> map = invokeReportManager.getConsumerByAppOnDay(source, date);
+            for (Map.Entry<String, Map<String, Integer>> consumerEntry : map.entrySet()) {
+                String consumerName = consumerEntry.getKey();
+                Map<String, Integer> sumMap = consumerEntry.getValue();
+
+                Map<String, Object> resultTimeMap = (Map<String, Object>) resultDataMap.get(consumerName);
+                if (resultTimeMap == null) {
+                    resultTimeMap = new HashMap<>();
+                    resultDataMap.put(consumerName, resultTimeMap);
+                }
+                resultTimeMap.put(date,sumMap);
+            }
+        }
+
+        //补充为0的数据
+        for (String consumerName : consumerSet) {
+            Map<String, Object> resultTimeMap = (Map<String, Object>) resultDataMap.get(consumerName);
+            if (null == resultTimeMap) {
+                resultTimeMap = new HashMap<>();
+                resultDataMap.put(consumerName, resultTimeMap);
+            }
+        }
+
+        return ResultVO.wrapSuccessfulResult(finalMap);
 
     }
 
@@ -240,17 +301,10 @@ public class ApplicationController {
         Date date = new Date(System.currentTimeMillis());
 
         List<String> recentDateList = new ArrayList<>();
-
-        if (type.equals("Month")) {
+        if (type.equals("Today")) {
             String nowDate = TimeUtil.getDateString(date);
-            Date firstDate = TimeUtil.getMinMonthDate(nowDate);
-            String firstDateString = TimeUtil.getDateString(firstDate);
-            while (!firstDateString.equals(nowDate)) {
-                recentDateList.add(firstDateString);
-                limit++;
-                firstDateString = TimeUtil.getBeforDateByNumber(firstDate, limit);
-            }
-        } else {
+            recentDateList.add(nowDate);
+        }  else {
             switch (type) {
                 case "Seven_DAY":
                     limit = 7;

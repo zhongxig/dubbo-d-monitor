@@ -8,7 +8,10 @@ import com.ants.monitor.biz.dubboService.RegistryContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by zxg on 15/11/17.
@@ -55,7 +58,7 @@ public class HostServiceImpl implements HostService {
                 String urlHost = url.getHost();
                 String urlPort = String.valueOf(url.getPort());
                 if (urlHost.equals(host)) {
-                    if (port == null || (port != null && port.equals(urlPort))) {
+                    if (port == null || port.equals(urlPort)) {
                         String application = url.getParameter(Constants.APPLICATION_KEY);
                         AppNameSet.add(application);
                     }

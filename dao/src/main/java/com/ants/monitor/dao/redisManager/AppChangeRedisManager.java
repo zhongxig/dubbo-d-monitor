@@ -1,15 +1,10 @@
 package com.ants.monitor.dao.redisManager;
 
 import com.ants.monitor.bean.bizBean.ApplicationChangeBO;
-import com.ants.monitor.common.redis.RedisClientTemplate;
-import com.ants.monitor.common.redis.RedisKeyBean;
-import com.ants.monitor.common.tools.JsonUtil;
-import com.ants.monitor.common.tools.TimeUtil;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by zxg on 15/12/9.

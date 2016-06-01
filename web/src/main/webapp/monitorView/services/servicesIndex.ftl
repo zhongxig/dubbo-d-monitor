@@ -65,7 +65,7 @@
         .fa-warning{
             color: red;
         }
-        /*高亮*/
+         /*高亮*/
         .hlight{
             background: yellow;
         }
@@ -84,6 +84,44 @@
             background-color: #A8B7D4;
             color: white;
         }
+
+        /*方法*/
+
+        .spanRow>.span{
+            border: 1px solid #F5F5F5;
+            border-radius: 5px !important;
+            margin-top: 10px;
+            margin-left: 30px;
+            margin-bottom: 10px;
+            cursor:pointer;
+            color: green;
+            padding: 4px 7px;
+        }
+
+        /*闪光效果*/
+        .spanRow>.span.active,
+        .spanRow>.span:hover{
+            background-color: rgb(217, 83, 79);
+            color: white;
+            transition: border linear .2s,box-shadow linear .5s;
+            -moz-transition: border linear .2s,-moz-box-shadow linear .5s;
+            -webkit-transition: border linear .2s,-webkit-box-shadow linear .5s;
+            outline: none;
+            border-color: rgb(216, 5, 5);
+            box-shadow: 0 0 8px rgb(252, 40, 40);
+            -moz-box-shadow: 0 0 8px rgb(252, 40, 40);
+            -webkit-box-shadow: 0 0 8px rgb(252, 40, 40);
+        }
+        /*标签*/
+        .spanRow>.span > span{
+            float: right;
+        }
+        .spanRow>.span.active > span,
+        .spanRow>.span:hover > span{
+            background-color: white;
+            color: red;
+        }
+
     </style>
 </head>
 

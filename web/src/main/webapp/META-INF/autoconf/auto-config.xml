@@ -2,13 +2,24 @@
 <config description="">
     <group name="default">
 
+        <!-- 数据库 -->
+        <property name="jdbc.url"
+                  defaultValue="jdbc:mysql://127.0.0.1:3306/monitor?characterEncoding=UTF-8&amp;zeroDateTimeBehavior=convertToNull"
+                  description="JDBC URL"/>
+        <property name="jdbc.username" defaultValue="root"
+                  description="JDBC username"/>
+        <property name="jdbc.password" defaultValue="123456"
+                  description="JDBC password"/>
+
 
         <property name="redis.host" defaultValue="redis://ants-monitor:123456@127.0.0.1:6379/2"/>
 
         <property name="dubbo.application.name" defaultValue="ants-monitor"/>
         <property name="dubbo.port" defaultValue="19300"/>
-        <property name="zookeeper.address" defaultValue="127.0.0.1:2181"/>
+        <property name="dubbo.registry.address" defaultValue="zookeeper://127.0.0.1:2181"/>
 
+        <property name="is_online" defaultValue="false"/>
+        <property name="out_time" defaultValue="180000"/>
 
     </group>
     <script>

@@ -5,8 +5,11 @@ import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.utils.ConfigUtils;
 import com.alibaba.dubbo.monitor.MonitorService;
 import com.ants.monitor.bean.UUIDGenerator;
+import com.ants.monitor.bean.bizBean.HostBO;
 import com.ants.monitor.bean.entity.InvokeDO;
+import com.ants.monitor.biz.support.service.HostService;
 import com.ants.monitor.common.tools.TimeUtil;
+import com.ants.monitor.dao.mapper.InvokeDOMapper;
 import com.ants.monitor.dao.redisManager.InvokeRedisManager;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -16,10 +19,14 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -32,9 +39,16 @@ public class DubboMonitorService implements MonitorService {
 
 //    private Thread saveInvokeThread;
 
+    @Autowired
+    private HostService hostService;
+
     private BlockingQueue<URL> queue;
 
     private static final String POISON_PROTOCOL = "poison";
+
+
+    //方法最后的消费时间
+    private static final Map<String,  String> serviceFinalTimeMap = new ConcurrentHashMap<>();
 
 //    private volatile boolean running = true;
 
@@ -43,6 +57,8 @@ public class DubboMonitorService implements MonitorService {
     private ThreadPoolTaskExecutor taskExecutor;
     @Autowired
     private InvokeRedisManager invokeRedisManager;
+    @Resource(name="invokeDOMapper")
+    private InvokeDOMapper invokeDOMapper;
 
 
     @PostConstruct
@@ -67,6 +83,10 @@ public class DubboMonitorService implements MonitorService {
 //        saveInvokeThread.setDaemon(true);
 //        saveInvokeThread.setName("DubboMonitorAsyncWriteLogThread");
 //        saveInvokeThread.start();
+    }
+    //获得service最后被消费的时间
+    public String getServiceConsumerTime(String serviceName){
+        return serviceFinalTimeMap.get(serviceName);
     }
 
     @Override
@@ -100,9 +120,11 @@ public class DubboMonitorService implements MonitorService {
         }  else {
             now = new Date(Long.parseLong(timestamp));
         }
+
+        HostBO hostBO = null;
         InvokeDO dubboInvoke = new InvokeDO();
 
-        dubboInvoke.setId(UUIDGenerator.getUUID());
+        dubboInvoke.setUuId(UUIDGenerator.getUUID());
         if (statistics.hasParameter(PROVIDER)) {
             dubboInvoke.setAppType(CONSUMER);
             dubboInvoke.setConsumerHost(statistics.getHost());
@@ -112,25 +134,28 @@ public class DubboMonitorService implements MonitorService {
                 String[] providerArray = provider.split(":");
                 dubboInvoke.setProviderHost(providerArray[0]);
                 dubboInvoke.setProviderPort(providerArray[1]);
+                hostBO = new HostBO(providerArray[0],providerArray[1]);
             }else{
                 dubboInvoke.setProviderHost(provider);
             }
-        } else {
-            dubboInvoke.setAppType(PROVIDER);
-            dubboInvoke.setProviderHost(statistics.getHost());
-            dubboInvoke.setProviderPort(String.valueOf(statistics.getPort()));
 
-            String consumer = statistics.getParameter(CONSUMER);
-            int i = consumer.indexOf(':');
-            if (i > 0) {
-                String[] consumerArray = consumer.split(":");
-                dubboInvoke.setConsumerHost(consumerArray[0]);
-                dubboInvoke.setConsumerPort(consumerArray[1]);
-            }else{
-                dubboInvoke.setConsumerHost(consumer);
-            }
+        } else {
+            //不存储提供者记录，暂时无用
+            return;
+//            dubboInvoke.setAppType(PROVIDER);
+//            dubboInvoke.setProviderHost(statistics.getHost());
+//            dubboInvoke.setProviderPort(String.valueOf(statistics.getPort()));
+//
+//            String consumer = statistics.getParameter(CONSUMER);
+//            int i = consumer.indexOf(':');
+//            if (i > 0) {
+//                String[] consumerArray = consumer.split(":");
+//                dubboInvoke.setConsumerHost(consumerArray[0]);
+//                dubboInvoke.setConsumerPort(consumerArray[1]);
+//            }else{
+//                dubboInvoke.setConsumerHost(consumer);
+//            }
         }
-        dubboInvoke.setInvokeDate(now);
         dubboInvoke.setApplication(statistics.getParameter(APPLICATION, ""));
         dubboInvoke.setService(statistics.getServiceInterface());
         dubboInvoke.setMethod(statistics.getParameter(METHOD));
@@ -141,14 +166,35 @@ public class DubboMonitorService implements MonitorService {
         dubboInvoke.setConcurrent(statistics.getParameter(CONCURRENT, 0));
         dubboInvoke.setMaxElapsed(statistics.getParameter(MAX_ELAPSED, 0));
         dubboInvoke.setMaxConcurrent(statistics.getParameter(MAX_CONCURRENT, 0));
+
+
+        String date = TimeUtil.getDateString(now);
+        String hour = TimeUtil.getHourString(now);
+        dubboInvoke.setInvokeDate(date);
+        dubboInvoke.setInvokeHour(hour);
+
         if (dubboInvoke.getSuccess() == 0 && dubboInvoke.getFailure() == 0 && dubboInvoke.getElapsed() == 0
                 && dubboInvoke.getConcurrent() == 0 && dubboInvoke.getMaxElapsed() == 0 && dubboInvoke.getMaxConcurrent() == 0) {
             return;
         }
 
-        String date = TimeUtil.getDateString(now);
-        SaveInvokeThread saveInvokeThread = new SaveInvokeThread(dubboInvoke,date);
+
+
+        SaveInvokeThread saveInvokeThread = new SaveInvokeThread(dubboInvoke,hour);
         taskExecutor.execute(saveInvokeThread);
+
+        //保存其最后被消费时间
+        if(hostBO != null) {
+            String time = TimeUtil.getTimeString(now);
+            String this_service = statistics.getServiceKey();
+            Set<String> serviceSet = hostService.getServiceByHost(hostBO);
+            for(String service:serviceSet) {
+                if(service.startsWith(this_service)) {
+                    serviceFinalTimeMap.put(service, time);
+                    break;
+                }
+            }
+        }
     }
 
 
@@ -158,14 +204,15 @@ public class DubboMonitorService implements MonitorService {
     private class SaveInvokeThread implements Runnable {
         private InvokeDO invokeDO;
 
-        private String date;
+        private String hour;
         @Override
         public void run() {
-            invokeRedisManager.saveInvoke(date, invokeDO);
+            // 缓存放一份
+            invokeRedisManager.saveInvoke(hour, invokeDO);
+            // 持久化放一份
+            invokeDOMapper.insertSelective(invokeDO);
         }
     }
-
-
 
     //内部线程类，开始处理url数据
     private class StartInvokeProcess implements Runnable {
@@ -178,4 +225,5 @@ public class DubboMonitorService implements MonitorService {
             }
         }
     }
+
 }

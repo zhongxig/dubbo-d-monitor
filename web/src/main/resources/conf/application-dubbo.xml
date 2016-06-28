@@ -11,7 +11,7 @@
     <dubbo:application name="${dubbo.application.name}" organization="Data" owner="rui.bai"/>
 
     <!-- 连接注册中心配置 -->
-    <dubbo:registry protocol="zookeeper" address="${zookeeper.address}"/>
+    <dubbo:registry protocol="zookeeper" address="${dubbo.registry.address}"/>
 
     <!-- 暴露服务协议配置 -->
     <dubbo:protocol name="dubbo" port="${dubbo.port}"/>

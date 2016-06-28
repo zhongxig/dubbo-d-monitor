@@ -40,8 +40,7 @@
 
 # 三、项目使用的技术
 
-1. 数据库：mysql（分支：redis）
-2. 缓存：redis
+1. 数据库：redis（master：mysql）
 2. 前端：freemarker+metronic+echarts
 3. 框架：springmvc
 4. dubbo版本号：dubbo-2.5.3
@@ -66,12 +65,10 @@
 
 #### 2.容灾设置，未启动的应用自定义实现报警
     `AppStopTaskController` 类的todo之处
-    
+
 #### 3.两种启动方式，选一种即可（本地推荐法一）：
     1）jetty: web/test/java/AntsMonitorServer ->main 方法启动即可
     2）tomcat: 先`mvn clean package -Dmaven.test.skip -U` 打包,而后将war包放在tomcat webapps下启动tomcat即可
-
-#### 4.mysql数据库建表sql：根目录下`dubbo_invoker.sql`
 
 ---
 

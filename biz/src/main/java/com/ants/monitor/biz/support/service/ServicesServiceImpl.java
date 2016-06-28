@@ -9,10 +9,12 @@ import com.ants.monitor.bean.bizBean.HostBO;
 import com.ants.monitor.bean.bizBean.ServiceBO;
 import com.ants.monitor.biz.dubboService.DubboMonitorService;
 import com.ants.monitor.biz.dubboService.RegistryContainer;
+import com.ants.monitor.common.tools.TimeUtil;
 import com.ants.monitor.common.tools.Tool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -133,6 +135,7 @@ public class ServicesServiceImpl implements ServicesService {
                 serviceBO = new ServiceBO();
                 serviceBO.setServiceName(service);
             }
+            String finalTime = "";
             for(URL url : urlSet){
                 //是否被禁止,禁止则不出现
                 Set<URL> forbidSet = forbidServices.get(url.getServiceKey());
@@ -154,6 +157,22 @@ public class ServicesServiceImpl implements ServicesService {
                 serviceBO.setOwnerApp(ownerApp);
                 //本地起了测试或线上，测试起了线上
                 String host = url.getHost();
+                String hostTime = dubboMonitorService.getServiceConsumerTime(service,host);
+                if(hostTime != null) {
+                    //时间处理
+                    if (finalTime.equals("")) {
+                        finalTime = hostTime;
+                    } else {
+                        try {
+                            //比较时间先后顺序，取靠后的时间
+                            Boolean compareResult = TimeUtil.compareTime(hostTime, finalTime);
+                            if (compareResult) finalTime = hostTime;
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
                 if(service.endsWith("1.0.0") && !onlineUrlSet.contains(host)){
                     serviceBO.setIsHostWrong(true);
                 }
@@ -162,7 +181,6 @@ public class ServicesServiceImpl implements ServicesService {
                 }
             }
 
-            String finalTime = dubboMonitorService.getServiceConsumerTime(service);
             serviceBO.setFinalConsumerTime(finalTime);
             serviceBOMap.put(service,serviceBO);
         }

@@ -80,6 +80,8 @@
 > dubbo-d-monitor 1.1.1:<br>
 1. 新增分支：monitor-redis，将之前master代码迁移到此分支上<br>
 2. mysql分支代码合并到master上，此后在master上开发，`monitor-for-mysql`待删除
+3.最后消费时间，精确到每个机子上统计，多机子的相同最后消费时间不一致
+4.移除部分无用代码
 
 ### 2016.06.01-`monitor-for-mysql`
 很久没更新了～！！ 为了优化存储和数据展示，参考了zabbix 的部分思路，将数据按时间存储不一致的粒度，且更改数据库存储为mysql，redis仅做缓存，由于该系统目前维护就我*一个人*，因此后续就维护 mysql版本，redis版本暂时不维护：

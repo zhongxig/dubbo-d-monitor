@@ -16,7 +16,7 @@
 
         <property name="dubbo.application.name" defaultValue="ants-monitor"/>
         <property name="dubbo.port" defaultValue="19300"/>
-        <property name="dubbo.registry.address" defaultValue="zookeeper://127.0.0.1:2181"/>
+        <property name="dubbo.registry.address" defaultValue="127.0.0.1:2181"/>
 
         <property name="is_online" defaultValue="false"/>
         <property name="out_time" defaultValue="180000"/>

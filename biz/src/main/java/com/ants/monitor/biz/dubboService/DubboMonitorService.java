@@ -31,7 +31,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Created by zxg on 15/11/2.
- * 15:54
  */
 @Service
 @Slf4j
@@ -85,8 +84,9 @@ public class DubboMonitorService implements MonitorService {
 //        saveInvokeThread.start();
     }
     //获得service最后被消费的时间
-    public String getServiceConsumerTime(String serviceName){
-        return serviceFinalTimeMap.get(serviceName);
+    public String getServiceConsumerTime(String serviceName,String provideHost){
+        String key = serviceName+provideHost;
+        return serviceFinalTimeMap.get(key);
     }
 
     @Override
@@ -108,6 +108,8 @@ public class DubboMonitorService implements MonitorService {
             return;
         }
         URL statistics = queue.take();
+//        log.info("saveInvoke{}",statistics.toFullString());
+
         if (POISON_PROTOCOL.equals(statistics.getProtocol())) {
             return;
         }
@@ -190,7 +192,8 @@ public class DubboMonitorService implements MonitorService {
             Set<String> serviceSet = hostService.getServiceByHost(hostBO);
             for(String service:serviceSet) {
                 if(service.startsWith(this_service)) {
-                    serviceFinalTimeMap.put(service, time);
+                    String key = service+hostBO.getHost();
+                    serviceFinalTimeMap.put(key, time);
                     break;
                 }
             }

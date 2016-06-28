@@ -45,7 +45,7 @@ public class InvokeRedisManager {
 
         if(!jsonList.isEmpty()){
             for(String jsonString : jsonList){
-                InvokeDO invokeDO = JsonUtil.jsonStrToObject(jsonString, InvokeDO.class);
+                InvokeDO invokeDO = JsonUtil.jsonStrToObject(jsonString,InvokeDO.class);
                 resultList.add(invokeDO);
             }
         }
@@ -74,26 +74,10 @@ public class InvokeRedisManager {
             if(resultList.isEmpty()){
                 redisClientTemplate.setNone(key);
             }else{
-                redisClientTemplate.lazySet(key, resultList, RedisKeyBean.RREDIS_EXP_HOURS);
+                redisClientTemplate.lazySet(key, resultList,RedisKeyBean.RREDIS_EXP_HOURS);
             }
         }else {
             resultList = redisClientTemplate.lazyGetList(key,InvokeDO.class);
-        }
-
-        return resultList;
-    }
-
-
-    // 获得该日期的所有invoker对象
-    public List<InvokeDO> getInvokeByDate(String date){
-        List<InvokeDO> resultList = new ArrayList<>();
-        String key = String.format(RedisKeyBean.invokeListHour, date);
-
-        List<String> jsonList = redisClientTemplate.getList(key, 0, -1);
-
-        for(String jsonString : jsonList){
-            InvokeDO invokeDO = JsonUtil.jsonStrToObject(jsonString, InvokeDO.class);
-            resultList.add(invokeDO);
         }
 
         return resultList;

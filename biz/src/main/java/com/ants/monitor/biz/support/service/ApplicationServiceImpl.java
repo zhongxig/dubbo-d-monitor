@@ -226,7 +226,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         String host = url.getHost();
         String port = String.valueOf(url.getPort());
         HostBO hostBO = new HostBO(host,port);
-        String finalTime = dubboMonitorService.getServiceConsumerTime(serviceName);
+        String finalTime = dubboMonitorService.getServiceConsumerTime(serviceName,host);
 
         Map<String,Set<ServiceBO>> thisServiceMap = applicationBO.getServiceMap();
         if(null == thisServiceMap) thisServiceMap = new HashMap<>();
@@ -250,6 +250,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         if(null == methodSet) methodSet = new HashSet<>();
         methodSet.add(methods);
 
+
         Map<String,Set<HostBO>> methodsHost = serviceBO.getMethodsHost();
         if(null == methodsHost) methodsHost = new HashMap<>();
         Set<HostBO> hostBOSet = methodsHost.get(methods);
@@ -268,10 +269,8 @@ public class ApplicationServiceImpl implements ApplicationService {
                 String wrongReason = "非线上环境";
                 serviceBO.setWrongReason(wrongReason);
                 wrongSet.add(serviceBO);
-                thisServiceMap.put("wrong",wrongSet);
             }else{
                 onlineSet.add(serviceBO);
-                thisServiceMap.put("online", onlineSet);
             }
         }else if(serviceName.endsWith("1.0.0.daily")){
             //测试环境判断
@@ -280,16 +279,19 @@ public class ApplicationServiceImpl implements ApplicationService {
                 String wrongReason = "非测试环境";
                 serviceBO.setWrongReason(wrongReason);
                 wrongSet.add(serviceBO);
-                thisServiceMap.put("wrong", wrongSet);
             } else {
                 testSet.add(serviceBO);
-                thisServiceMap.put("test", testSet);
             }
         }else{
             //正常的
             localSet.add(serviceBO);
-            thisServiceMap.put("local",localSet);
         }
+
+        if(!wrongSet.isEmpty()) thisServiceMap.put("wrong",wrongSet);
+        if(!onlineSet.isEmpty()) thisServiceMap.put("online", onlineSet);
+        if(!testSet.isEmpty()) thisServiceMap.put("test", testSet);
+        if(!localSet.isEmpty()) thisServiceMap.put("local",localSet);
+
         applicationBO.setServiceMap(thisServiceMap);
     }
 

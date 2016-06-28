@@ -56,7 +56,7 @@ public class TimeUtil {
             calendar.setTime(dateFormat.parse(date));
             calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
             return dateFormat.format(calendar.getTime());
-        } catch (ParseException e) {
+        } catch (java.text.ParseException e) {
             e.printStackTrace();
         }
         return null;
@@ -68,7 +68,7 @@ public class TimeUtil {
             calendar.setTime(dateFormat.parse(date));
             calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
             return calendar.getTime();
-        } catch (ParseException e) {
+        } catch (java.text.ParseException e) {
             e.printStackTrace();
         }
         return null;
@@ -82,7 +82,7 @@ public class TimeUtil {
             calendar.setTime(dateFormat.parse(date));
             calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
             return dateFormat.format(calendar.getTime());
-        } catch (ParseException e) {
+        } catch (java.text.ParseException e) {
             e.printStackTrace();
         }
         return null;
@@ -152,6 +152,17 @@ public class TimeUtil {
         return str2;
     }
 
+    // time1 > tim2 : true
+    public static Boolean compareTime(String time1,String time2) throws ParseException {
+        SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss");
+        Date dt1 = formatter.parse(time1);
+        Date dt2 = formatter.parse(time2);
+        if (dt1.getTime() > dt2.getTime()) {
+            return true;
+        }
+
+        return false;
+    }
 
 
 

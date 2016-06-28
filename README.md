@@ -1,10 +1,11 @@
 ---
 
-# 项目介绍
+# 项目介绍:(1.1.1)
 
 ## 注意：branch
-#### `master` - redis版本
-#### `monitor-for-mysql` - mysql版本
+#### `master` - mysql版本（持续维护中～）
+#### ~~`monitor-for-mysql`~~ - mysql版本(已转移至master，待删除)
+#### `monitor-redis` - redis版本（维护截至到2016-06-03，后续暂时不维护）
 
 ## 界面效果图：
 ![image](https://github.com/zhongxig/ants-monitor-on-Redis/raw/master/monitor-dashboard.png)
@@ -39,7 +40,8 @@
 
 # 三、项目使用的技术
 
-1. 数据库：redis（分支：mysql）
+1. 数据库：mysql（分支：redis）
+2. 缓存：redis
 2. 前端：freemarker+metronic+echarts
 3. 框架：springmvc
 4. dubbo版本号：dubbo-2.5.3
@@ -74,6 +76,10 @@
 ---
 
 # 五、更改历史
+### 2016.06.28 -`master`
+> dubbo-d-monitor 1.1.1:<br>
+1. 新增分支：monitor-redis，将之前master代码迁移到此分支上<br>
+2. mysql分支代码合并到master上，此后在master上开发，`monitor-for-mysql`待删除
 
 ### 2016.06.01-`monitor-for-mysql`
 很久没更新了～！！ 为了优化存储和数据展示，参考了zabbix 的部分思路，将数据按时间存储不一致的粒度，且更改数据库存储为mysql，redis仅做缓存，由于该系统目前维护就我*一个人*，因此后续就维护 mysql版本，redis版本暂时不维护：

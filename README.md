@@ -69,6 +69,8 @@
     1）jetty: web/test/java/AntsMonitorServer ->main 方法启动即可
     2）tomcat: 先`mvn clean package -Dmaven.test.skip -U` 打包,而后将war包放在tomcat webapps下启动tomcat即可
 
+#### 4.mysql数据库建表sql：根目录下`dubbo_invoker.sql`
+
 ---
 
 # 五、更改历史

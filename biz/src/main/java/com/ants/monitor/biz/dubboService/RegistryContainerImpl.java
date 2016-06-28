@@ -12,7 +12,6 @@ import com.ants.monitor.bean.MonitorConstants;
 import com.ants.monitor.bean.bizBean.ApplicationChangeBO;
 import com.ants.monitor.biz.support.service.AppChangeService;
 import com.ants.monitor.common.tools.SpringContextsUtil;
-import com.ants.monitor.common.tools.TimeUtil;
 import com.ants.monitor.common.tools.Tool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,8 +37,6 @@ public class RegistryContainerImpl implements RegistryContainer {
     private final Map<String, Map<String, Set<URL>>> registryCache = new ConcurrentHashMap<>();
     //key:serviceInterface value:Set<service:version>－－用作provider 停止服务时 取消其内容于registryCache中
     private final Map<String,  Set<String>> interfaceCache = new ConcurrentHashMap<>();
-    //方法最后的消费时间
-    private final Map<String,  String> serviceFinalTimeMap = new ConcurrentHashMap<>();
 
     //变更的app的变化 provider:list<bo> || consumer:list<bo>，每次启动时从redis读取
     private final Map<String,Set<ApplicationChangeBO>> changeAppCaChe = new ConcurrentHashMap<>();
@@ -75,11 +72,6 @@ public class RegistryContainerImpl implements RegistryContainer {
     public Date getFinalUpdateTime() {
         Date now = (Date) finalDataMap.get("now");
         return now;
-    }
-
-    //获得service最后被消费的时间
-    public String getServiceConsumerTime(String serviceName){
-        return serviceFinalTimeMap.get(serviceName);
     }
 
     //初始化changeApp--redis取出,比较后，执行存储
@@ -152,7 +144,6 @@ public class RegistryContainerImpl implements RegistryContainer {
                 final Map<String, Set<String>> interfaces = new ConcurrentHashMap<>();
 
                 Date now = new Date();
-                String time = TimeUtil.getTimeString(now);
                 //实际逻辑
                 for (URL url : urls) {
                     //逻辑处理
@@ -194,9 +185,6 @@ public class RegistryContainerImpl implements RegistryContainer {
                             interfaces.put(serviceInterface, interfaceServices);
                         }
                         interfaceServices.add(service);
-                    } else if (Constants.CONSUMERS_CATEGORY.equals(category)) {
-                        //保存其最后被消费时间
-                        serviceFinalTimeMap.put(service, time);
                     }
                 }
                 // 提供者，批量的interface，涉及provider的减少

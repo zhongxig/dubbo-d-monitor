@@ -4,7 +4,7 @@ import com.ants.monitor.common.tools.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.*;
+import redis.clients.jedis.ShardedJedis;
 
 import java.util.*;
 
@@ -308,8 +308,8 @@ public class RedisClientTemplateImpl implements RedisClientTemplate {
         }
         boolean broken = false;
         try {
-            shardedJedis.hdel(key,field);
-            result = true;
+                shardedJedis.hdel(key,field);
+                result = true;
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -454,7 +454,7 @@ public class RedisClientTemplateImpl implements RedisClientTemplate {
 
     @Override
     public List<String> getList(String key, Integer start, Integer end) {
-        List<String> result = null;
+        List<String> result = new ArrayList<>();
         ShardedJedis shardedJedis = redisDataSource.getRedisClient();
         if (shardedJedis == null) {
             return result;

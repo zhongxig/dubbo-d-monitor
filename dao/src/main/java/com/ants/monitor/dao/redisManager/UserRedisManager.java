@@ -33,4 +33,5 @@ public class UserRedisManager {
 
         return redisClientTemplate.getMapKey(mapKey, ipNameField);
     }
+
 }

@@ -6,10 +6,10 @@ import com.ants.monitor.bean.ResultVO;
 import com.ants.monitor.bean.bizBean.HostBO;
 import com.ants.monitor.bean.bizBean.ServiceBO;
 import com.ants.monitor.bean.entity.InvokeDO;
-import com.ants.monitor.dao.redisManager.InvokeRedisManager;
 import com.ants.monitor.biz.support.service.HostService;
 import com.ants.monitor.biz.support.service.ServicesService;
 import com.ants.monitor.common.tools.TimeUtil;
+import com.ants.monitor.dao.redisManager.InvokeRedisManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -90,6 +90,68 @@ public class ServicesController {
 
     }
 
+    //获得此service下的 方法 当前时间的调用量
+    @RequestMapping(value = "/getMethodSumOneDay", method = RequestMethod.GET)
+    public
+    @ResponseBody
+    ResultVO getMethodSumOneDay(String serviceName,String methodName ,String type){
+        List<String> recentDateList = getRecentDay(type);
+        //判断 host 是否有这个 service
+        List<String> haveList = new ArrayList<>();
+        List<String> notHaveList = new ArrayList<>();
+
+        Map<String,Object> resultMap = new HashMap<>();
+        //消费的app
+        Set<String> appList = new HashSet<>();
+
+//        {hour:{success:xxx,elapsed:xxx}}
+        Map<String,Object> dataMap = new HashMap<>();
+        for(String date : recentDateList) {
+            List<InvokeDO> methodList = invokeRedisManager.getInvokeByMethodDay(serviceName.split(":")[0],methodName,date);
+            for(InvokeDO invokeDO : methodList){
+                String providerHost = invokeDO.getProviderHost();
+                String providerPort = invokeDO.getProviderPort();
+                String providerKey = providerHost + "-" + providerPort;
+
+                if(notHaveList.contains(providerKey)){
+                    // 非此service
+                    continue;
+                }
+                if(!haveList.contains(providerKey)) {
+                    Set<String> serviceSet = hostService.getServiceByHost(new HostBO(providerHost, providerPort));
+                    if (!serviceSet.contains(serviceName)) {
+                        // 非此service
+                        notHaveList.add(providerKey);
+                        continue;
+                    }
+                    haveList.add(providerKey);
+                }
+
+                appList.add(invokeDO.getApplication());
+                Integer successNum = invokeDO.getSuccess();
+                Integer elapsedNum = invokeDO.getElapsed();
+
+                String hourTime  = invokeDO.getInvokeHour();
+
+                Map<String,Integer> hourMap = (Map<String, Integer>) dataMap.get(hourTime);
+                if(hourMap == null){
+                    hourMap = new HashMap<>();
+                    dataMap.put(hourTime,hourMap);
+                }
+                Integer oldSuccessNum = hourMap.get("success") == null?0:hourMap.get("success");
+                Integer oldElapsedNum = hourMap.get("elapsed") == null?0:hourMap.get("elapsed");
+
+                hourMap.put("success",oldSuccessNum+successNum);
+                hourMap.put("elapsed",oldElapsedNum+elapsedNum);
+            }
+
+        }
+
+        resultMap.put("dataMap",dataMap);
+        resultMap.put("appList",appList);
+
+        return ResultVO.wrapSuccessfulResult(resultMap);
+    }
 
     //获得此service的tps和并发量,以分钟为单位 map结构-----{provider:时间：方法：成功失败值} 四层
     @RequestMapping(value = "/getChartByName", method = RequestMethod.GET)
@@ -186,7 +248,10 @@ public class ServicesController {
 
         List<String> recentDateList = new ArrayList<>();
 
-        if (type.equals("Month")) {
+        if (type.equals("Today")) {
+            String nowDate = TimeUtil.getDateString(date);
+            recentDateList.add(nowDate);
+        } else if (type.equals("Month")) {
             String nowDate = TimeUtil.getDateString(date);
             Date firstDate = TimeUtil.getMinMonthDate(nowDate);
             String firstDateString = TimeUtil.getDateString(firstDate);

@@ -1,6 +1,6 @@
 ---
 
-# 项目介绍:(1.1.1)
+# 项目介绍:(1.1.2)
 
 ## 注意：branch
 #### `master` - mysql版本（持续维护中～）
@@ -76,6 +76,11 @@
 ---
 
 # 五、更改历史
+
+### 2016.07.05 -`master`
+> dubbo-d-monitor 1.1.2:<br>
+1. application模块新增 方法调用排行，便于例如测试将多调用多方法做集成测试<br>
+
 ### 2016.06.28 -`master`
 > dubbo-d-monitor 1.1.1:<br>
 1. 新增分支：monitor-redis，将之前master代码迁移到此分支上<br>

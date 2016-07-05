@@ -4,7 +4,9 @@ import com.alibaba.dubbo.common.Constants;
 import com.ants.monitor.bean.MonitorConstants;
 import com.ants.monitor.bean.ResultVO;
 import com.ants.monitor.bean.bizBean.ApplicationBO;
+import com.ants.monitor.bean.bizBean.MethodRankBO;
 import com.ants.monitor.bean.bizBean.ServiceBO;
+import com.ants.monitor.biz.bussiness.InvokeBiz;
 import com.ants.monitor.biz.support.service.ApplicationService;
 import com.ants.monitor.common.tools.TimeUtil;
 import com.ants.monitor.dao.redisManager.InvokeReportManager;
@@ -26,6 +28,8 @@ import java.util.*;
 public class ApplicationController {
     @Autowired
     private ApplicationService applicationService;
+    @Autowired
+    private InvokeBiz invokeBiz;
 
     @Autowired
     private InvokeReportManager invokeReportManager;
@@ -294,6 +298,16 @@ public class ApplicationController {
 
     }
 
+
+    // 获得
+    @RequestMapping(value = "/getMethodRanking", method = RequestMethod.GET)
+    public
+    @ResponseBody
+    ResultVO getMethodRanking(String appName) {
+        List<MethodRankBO> list = invokeBiz.getMethodRankByAppName(appName);
+
+        return ResultVO.wrapSuccessfulResult(list);
+    }
 
     //=======private======
     private List<String> getRecentDay(String type) {

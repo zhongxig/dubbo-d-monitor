@@ -47,6 +47,17 @@
         tbody > tr {
             cursor: pointer;
         }
+
+        .ranking_body{
+            min-height: 500px;
+        }
+        .label-best{
+            display: inline-block;
+            padding: 5px 4px 6px 5px;
+            vertical-align: middle;
+            text-align: center;
+            font-size: 12px;
+        }
     </style>
 </head>
 

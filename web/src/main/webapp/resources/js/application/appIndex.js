@@ -103,12 +103,12 @@ function othersClick() {
         $("#echarts_section").html(html);
         $('#echarts_section').removeClass("hidden");
 
-        echartSectionFunction();
+        finalSectionFunction();
 
         if (provider_value == undefined) {
             $("#services_section").addClass("hidden");
 
-            $("#alert_section").html(Mustache.render($('#alert_danger_template').html(), {appName: appName}))
+            $("#alert_section").html(Mustache.render($('#alert_danger_template').html(), {appName: appName}));
             scroll_offset = $("#alert_section").offset();  //得到pos这个div层的offset，包含两个值，top和left
 
 
@@ -116,6 +116,7 @@ function othersClick() {
             aPPRelationForceChart(appName);
             //服务数据图表隐藏
             $("#tab_app_data_btn").addClass("hidden");
+            $("#tab_app_ranking_btn").addClass("hidden");
 
         } else {
             $("#services_section").removeClass("hidden");
@@ -127,6 +128,7 @@ function othersClick() {
             aPPRelationForceChart(appName);
             //服务数据图表出现
             $("#tab_app_data_btn").removeClass("hidden");
+            $("#tab_app_ranking_btn").removeClass("hidden");
         }
         Amm.changeiframeParentHeight();
 
@@ -228,38 +230,6 @@ function initeCharts() {
 }
 
 //===========================二级方法=================
-function echartSectionFunction(){
-    $("#tab_app_data_btn").unbind("click").click(function () {
-
-        $('#tab_app_relation_btn').parent().removeClass("active");
-        $(this).parent().addClass("active");
-
-
-        $('#tab_app_relation').removeClass("active");
-        $('#tab_app_data').addClass("active");
-
-        if ($("#app_relation_success_bar_echarts").html().trim() == "") {
-            aPPRelationBarChart();
-        }
-
-        Amm.changeiframeParentHeight();
-
-        return false;
-    });
-
-
-    $(".relation_force_options").unbind("click").click(function () {
-        var type = $(this).find('input').data("value");
-        var appName = $("#services_app_span").text();
-        aPPRelationForceChart(appName, type);
-    });
-
-    $(".relation_bar_options").unbind("click").click(function () {
-        var type = $(this).find('input').data("value");
-        aPPRelationBarChart(type);
-    });
-
-}
 // 获得该app的service列表
 function initServiceTable(appName) {
     var appMap = allAppResutMap.allApp;
@@ -372,6 +342,108 @@ function filterAppTable() {
     }
     return false;
 }
+
+
+function finalSectionFunction(){
+    // 数据图表
+    $("#tab_app_data_btn").unbind("click").click(function () {
+
+        $(this).parent().siblings().removeClass("active");
+        $(this).parent().addClass("active");
+
+
+        $('#tab_app_relation').removeClass("active");
+        $('#tab_app_ranking').removeClass("active");
+        $('#tab_app_data').addClass("active");
+
+        if ($("#app_relation_success_bar_echarts").html().trim() == "") {
+            aPPRelationBarChart();
+        }
+
+        Amm.changeiframeParentHeight();
+
+        return false;
+    });
+
+    //排行榜
+    $("#tab_app_ranking_btn").unbind("click").click(function () {
+
+        $(this).parent().siblings().removeClass("active");
+        $(this).parent().addClass("active");
+
+
+        $('#tab_app_relation').removeClass("active");
+        $('#tab_app_data').removeClass("active");
+        $('#tab_app_ranking').addClass("active");
+
+        rankingFunction();
+
+        return false;
+    });
+
+
+    $(".relation_force_options").unbind("click").click(function () {
+        var type = $(this).find('input').data("value");
+        var appName = $("#services_app_span").text();
+        aPPRelationForceChart(appName, type);
+    });
+
+    $(".relation_bar_options").unbind("click").click(function () {
+        var type = $(this).find('input').data("value");
+        aPPRelationBarChart(type);
+    });
+
+}
+
+
+//排行榜
+function rankingFunction(){
+    var appName = $("#services_app_span").text();
+
+    var loadingEL = $("#tab_app_ranking");
+    Metronic.blockUI(loadingEL);
+    var key = appName+"_method_rank";
+    var method_rank_list = JSON.parse(storage.getItem(key));
+    if(method_rank_list == undefined){
+        $.get("/monitor/application/getMethodRanking",{appName:appName},function(result){
+            var resultList = result.data;
+            rankingFunctionHelp(resultList);
+            storage.setItem(key,JSON.stringify(resultList))
+        });
+
+    }else{
+
+        rankingFunctionHelp(method_rank_list);
+    }
+
+}
+
+function rankingFunctionHelp(resultList){
+    var firstIndexHtml = '<div class="label label-best label-danger"> <i class="fa fa-trophy"></i>&nbsp;INDEX</div>';
+    var otherIndexHtml = '<span class="primary-link">INDEX </span>';
+
+    var indexs = 0;
+    var map = {
+        list:resultList,
+        indexFunc: function () {
+            var html = "";
+            indexs += 1;
+            if(indexs < 4){
+                html = firstIndexHtml.replace("INDEX",indexs);
+            }else{
+                html = otherIndexHtml.replace("INDEX",indexs);
+            }
+            return html;
+        }
+    };
+    var rank_html = Mustache.render($('#method_rank_template').html(), map);
+    $("#ranking_body").html(rank_html);
+
+    Amm.changeiframeParentHeight();
+    Metronic.unblockUI($("#tab_app_ranking"));
+}
+
+
 //所有app之间的依赖关系
 function allAPPRelationForceChart(ec) {
     if (allAppResutMap != undefined) {

@@ -33,6 +33,9 @@ public interface RedisKeyBean {
     //查到method日期的数据 service_method_day，1个小时
     String invokeMethodDayKey = SYSTEM_PREFIX+"invoke_method_%s_%s_%s";
 
+    //该应用下的方法排行榜数据 appName,1h
+    String invokeMethodRankKey = SYSTEM_PREFIX+"app_method_rank_%s";
+
     //按日期存储详细变化,一周
     String dayChangeKey = SYSTEM_PREFIX+"month_app_change_list_%s";
     //存这月多少日期有变化，一周

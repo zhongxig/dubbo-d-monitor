@@ -30,6 +30,9 @@ public class InvokeBizImpl implements InvokeBiz {
     @Resource(name="invokeDOMapper")
     private InvokeDOMapper invokeDOMapper;
 
+    //排行榜展示最大的数量
+    private static final Integer maxRankNumber = 50;
+
     @Override
     public List<MethodRankBO> getMethodRankByAppName(String appName) {
         List<MethodRankBO> resultList = new ArrayList<>();
@@ -47,7 +50,7 @@ public class InvokeBizImpl implements InvokeBiz {
         }
         if(redisResultString != null){
             //返回redis 缓存结果集
-            return JsonUtil.jsonStrToList(redisResultString, MethodRankBO.class);
+            return JsonUtil.jsonStrToList(redisResultString,MethodRankBO.class);
         }
         //redis 中无数据，进行数据库操作
         resultList = findFromDataBase(appName);
@@ -55,7 +58,7 @@ public class InvokeBizImpl implements InvokeBiz {
         if(resultList.isEmpty()){
             redisClientTemplate.setNone(redisKey);
         }else{
-            redisClientTemplate.lazySet(redisKey,resultList, RedisKeyBean.RREDIS_EXP_HOURS);
+            redisClientTemplate.lazySet(redisKey,resultList,RedisKeyBean.RREDIS_EXP_HOURS);
         }
 
 
@@ -117,7 +120,7 @@ public class InvokeBizImpl implements InvokeBiz {
             MethodRankBO rankBO =entry.getKey();
             rankBO.setUsedNum(entry.getValue());
             resultList.add(rankBO);
-            if(resultList.size() > 14){
+            if(resultList.size() > maxRankNumber-1){
                 break;
             }
         }

@@ -402,19 +402,13 @@ function rankingFunction(){
 
     var loadingEL = $("#tab_app_ranking");
     Metronic.blockUI(loadingEL);
-    var key = appName+"_method_rank";
-    var method_rank_list = JSON.parse(storage.getItem(key));
-    if(method_rank_list == undefined){
-        $.get("/monitor/application/getMethodRanking",{appName:appName},function(result){
-            var resultList = result.data;
-            rankingFunctionHelp(resultList);
-            storage.setItem(key,JSON.stringify(resultList))
-        });
+    $.get("/monitor/application/getMethodRanking",{appName:appName},function(result){
+        var resultList = result.data;
+        rankingFunctionHelp(resultList);
 
-    }else{
-
-        rankingFunctionHelp(method_rank_list);
-    }
+        Amm.changeiframeParentHeight();
+        Metronic.unblockUI(loadingEL);
+    });
 
 }
 
@@ -439,8 +433,6 @@ function rankingFunctionHelp(resultList){
     var rank_html = Mustache.render($('#method_rank_template').html(), map);
     $("#ranking_body").html(rank_html);
 
-    Amm.changeiframeParentHeight();
-    Metronic.unblockUI($("#tab_app_ranking"));
 }
 
 

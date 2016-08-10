@@ -176,8 +176,7 @@
 <!-- END CONTAINER -->
 <div class="page-footer">
     <div class="page-footer-inner">
-        2015 © <a href="http://confluence.weichedao.com/pages/viewpage.action?pageId=11241458" target="_blank">数据团队</a>
-        by <a href="https://github.com/zhongxig/ants-monitor-on-Redis" target="_blank">中西.</a>
+        2015 © 杭州 by 中西.
     </div>
     <div class="scroll-to-top" style="">
         <i class="icon-arrow-up"></i>

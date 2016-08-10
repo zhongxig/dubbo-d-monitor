@@ -9,16 +9,6 @@ $(function(){
         //$("#alert_model").modal("show");
         return false;
     });
-    $("#logout").click(function(){
-        $.ajax({
-            type: 'GET',
-            url: $("#idpUrl").val()+'logout',
-            dataType: 'jsonp',
-            success: function (data) {
-                window.location.href = headerUrl+'/monitor/log/logout';
-            }
-        });
-    });
 
     //弹性更改浏览器高度
     changeHeightWidth();

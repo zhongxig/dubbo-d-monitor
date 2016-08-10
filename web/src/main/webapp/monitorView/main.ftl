@@ -117,17 +117,6 @@
                             </#if>
                             </span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-default">
-                            <li >
-                                <a href="${idpUrl}user/edit/pass">
-                                    <i class="fa fa-pencil"></i>
-                                    修改密码
-                                </a>
-                            </li>
-
-                            <li><a href="#" id="logout"><i class="fa fa-sign-out"></i> 退出</a></li>
-
-                        </ul>
                     </li>
                     <!-- END USER LOGIN DROPDOWN -->
                 </ul>

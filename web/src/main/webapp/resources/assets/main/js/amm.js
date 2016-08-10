@@ -17,7 +17,10 @@ var Amm = function() {
         init: function () {
             changeiframeParentHeight();
         },
-
+        alertFuc: function (content, heard_html, width) {
+            //提示框
+            window.parent.window.alertContent(content, heard_html, width);
+        },
         changeiframeParentHeight: function () {
             changeiframeParentHeight();
         },

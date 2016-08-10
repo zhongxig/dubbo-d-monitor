@@ -6,9 +6,19 @@ $(function(){
     //});
     $("#for_fun_btn").click(function(){
         $("#confirm_modal").modal("show");
+        //$("#alert_model").modal("show");
         return false;
     });
-
+    $("#logout").click(function(){
+        $.ajax({
+            type: 'GET',
+            url: $("#idpUrl").val()+'logout',
+            dataType: 'jsonp',
+            success: function (data) {
+                window.location.href = headerUrl+'/monitor/log/logout';
+            }
+        });
+    });
 
     //弹性更改浏览器高度
     changeHeightWidth();
@@ -26,12 +36,13 @@ $(function(){
         $('.page-sidebar-menu li').removeClass('active');
 
         $(this).addClass('active');
+
         getFinalUpdateTime();
     });
 
     // 点击 缩进
     $('.sidebar-toggler').click(function(){
-       $('#main-title').toggleClass("hidden");
+        $('#main-title').toggleClass("hidden");
     });
 
     getFinalUpdateTime();
@@ -79,3 +90,23 @@ function getFinalUpdateTime(){
         }
     })
 }
+
+
+//弹出框
+var alertContent = function (content, heard_html, width) {
+    var hearder = $("#alert_model .modal-header", parent.document);
+    if (heard_html == undefined) {
+        hearder.addClass('hidden');
+    } else {
+        hearder.html(heard_html);
+        hearder.removeClass('hidden');
+    }
+    $("#alert_model .modal-body", parent.document).html(content);
+    if (width == undefined) {
+        width = "500";
+    }
+    $('#alert_model', parent.document).data("width", width);
+    $('#alert_model', parent.document).modal('show');
+    //alertHeightChange();
+    return false;
+};

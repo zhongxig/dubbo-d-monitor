@@ -76,6 +76,11 @@
 ---
 
 # 五、更改历史
+### 2016.08.10 -`master`
+> dubbo-d-monitor 1.1.2:<br>
+1. 新增全局alert 样式js和css<br>
+2. service模块未选择方法时查看图片bug fix<br>
+
 ### 2016.07.07 -`master`
 > dubbo-d-monitor 1.1.2:<br>
 1. 方法排行最大值改为50<br>

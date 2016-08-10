@@ -282,7 +282,7 @@ function tableClick() {
                     var html = "";
                     var hostList = this.hostList;
                     $.each(hostList,function(i,hostBO){
-                       var host = hostBO.host;
+                        var host = hostBO.host;
                         if($.inArray(host,testUrlSet) > -1){
                             html += '<span class="badge badge-success">测试环境：'+hostBO.hostString+ "</span>";
                         }else{
@@ -407,7 +407,7 @@ function main_service_section(serviceBO) {
 
     //点击 方法
     $(".method_class").unbind("click").click(function () {
-       //判断 是否 可以看数据图
+        //判断 是否 可以看数据图
         if($("#tab_service_data_btn").hasClass("hidden")){
             return false;
         }
@@ -453,12 +453,19 @@ function main_service_section(serviceBO) {
     //  根据日期筛选
     $(".relation_bar_options").unbind("click").click(function () {
 
-        var loadingEL = $('#tabbable-custom');
-        Metronic.blockUI(loadingEL);
 
         var type = $(this).find('input').data("value");
         var serviceName = $("#serviceName").html().trim();
-        var methodName = $(".method_class.active").data("method").trim();
+        var methodName = $(".method_class.active").data("method");
+        if(methodName == undefined){
+            Amm.alertFuc("请选择方法后再进行图表查看");
+            return false;
+        }
+        methodName = methodName.trim();
+
+        var loadingEL = $('#tabbable-custom');
+        Metronic.blockUI(loadingEL);
+
         var isUsed = serviceArtChart(serviceName,methodName, type);
 
         //判断 是否有展示 是否被使用

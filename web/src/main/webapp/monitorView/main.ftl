@@ -29,13 +29,14 @@
 
 
     <link href="${base}/resources/assets/global/css/plugins.css" rel="stylesheet" type="text/css"/>
+    <link href="${base}/resources/assets/main/css/amm.css" rel="stylesheet" type="text/css"/>
 
 
 
 
 
     <!-- BEGIN PAGE LEVEL STYLES -->
-    <link href="${base}/resources/assets/global/plugins/bootstrap-modal/css/bootstrap-modal-bs3patch.css" rel="stylesheet" type="text/css"/>
+<#--<link href="${base}/resources/assets/global/plugins/bootstrap-modal/css/bootstrap-modal-bs3patch.css" rel="stylesheet" type="text/css"/>-->
     <link href="${base}/resources/assets/global/plugins/bootstrap-modal/css/bootstrap-modal.css" rel="stylesheet" type="text/css"/>
 
     <!-- END THEME STYLES -->
@@ -52,7 +53,7 @@
 
 <body class="page-header-fixed page-sidebar-closed-hide-logo " style="overflow-x: hidden;">
 <!-- BEGIN HEADER -->
-    <div class="page-header navbar navbar-fixed-top" id="main_header">
+<div class="page-header navbar navbar-fixed-top" id="main_header">
     <!-- BEGIN HEADER INNER -->
     <div class="page-header-inner">
         <!-- BEGIN LOGO -->
@@ -91,30 +92,42 @@
 						    最近更新数据时间：<span id="final_update_time"></span>
                         </span>
                         </a>
-                        <#--<ul class="dropdown-menu dropdown-menu-default">-->
-                            <#--<li>-->
-                                <#--<a href="#">-->
-                                    <#--<i class="fa fa-refresh"></i>-->
-                                    <#--等待添加功能......-->
-                                <#--</a>-->
-                            <#--</li>-->
+                    <#--<ul class="dropdown-menu dropdown-menu-default">-->
+                    <#--<li>-->
+                    <#--<a href="#">-->
+                    <#--<i class="fa fa-refresh"></i>-->
+                    <#--等待添加功能......-->
+                    <#--</a>-->
+                    <#--</li>-->
 
-                        <#--</ul>-->
+                    <#--</ul>-->
                     </li>
                     <!-- END USER LOGIN DROPDOWN -->
 
                     <li class="dropdown dropdown-user dropdown-dark">
+                        <input type="hidden" id="user_name" value="${name}">
+                        <input type="hidden" id="idpUrl" value="${idpUrl}">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
                             <img alt="" class="img-circle" style="background-color: #86B4DC;" src="${base}/resources/assets/img/ants_img.png">
                             <span class="username username-hide-on-mobile" id="user_name_show">
-                                <#if name = 'null'>
-                                    匿名神秘人
-                                    <#else >
-                                    ${name}
-                                </#if>
+                            <#if name = 'null'>
+                                匿名神秘人
+                            <#else >
+                            ${name}
+                            </#if>
                             </span>
                         </a>
+                        <ul class="dropdown-menu dropdown-menu-default">
+                            <li >
+                                <a href="${idpUrl}user/edit/pass">
+                                    <i class="fa fa-pencil"></i>
+                                    修改密码
+                                </a>
+                            </li>
 
+                            <li><a href="#" id="logout"><i class="fa fa-sign-out"></i> 退出</a></li>
+
+                        </ul>
                     </li>
                     <!-- END USER LOGIN DROPDOWN -->
                 </ul>
@@ -126,7 +139,7 @@
     <!-- END HEADER INNER -->
 </div>
 <!-- END HEADER -->
-    <div class="clearfix">
+<div class="clearfix">
 </div>
 <!-- BEGIN CONTAINER -->
 <div class="page-container ">
@@ -176,7 +189,8 @@
 <!-- END CONTAINER -->
 <div class="page-footer">
     <div class="page-footer-inner">
-        2015 © 杭州 by 中西.
+        2015 © <a href="http://confluence.weichedao.com/pages/viewpage.action?pageId=11241458" target="_blank">数据团队</a>
+        by <a href="https://github.com/zhongxig/ants-monitor-on-Redis" target="_blank">中西.</a>
     </div>
     <div class="scroll-to-top" style="">
         <i class="icon-arrow-up"></i>
@@ -185,18 +199,40 @@
 <!-- BEGIN JAVASCRIPTS(Load javascripts at bottom, this will reduce page load time) -->
 
 <!-- static -->
-<div id="confirm_modal" class="modal fade" tabindex="-1" data-backdrop="static" data-keyboard="false">
-    <div class="modal-body">
-        <p>
-            别闹了，太忙了，这个功能还没做呢！！
-        </p>
-    </div>
-    <div class="modal-footer">
-        <button type="button" data-dismiss="modal" class="btn btn-default">好吧</button>
+<div id="confirm_modal" class="modal fade modal-scroll" data-backdrop="static" data-keyboard="false">
+    <a href="#" class="model-close btn" style="color:#FFF;background-color:#c63927" data-dismiss="modal" aria-hidden="true">
+        <i class="fa fa-times"></i>
+    </a>
+
+    <div class="modal-section">
+        <div class="modal-body" style="overflow-x: hidden;">
+            <p>
+                别闹了，太忙了，这个功能还没做呢！！
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" data-dismiss="modal" class="btn btn-default">好吧</button>
         <#--<button type="button" data-dismiss="modal" class="btn blue">Continue Task</button>-->
+        </div>
     </div>
+
 </div>
 
+<div id="alert_model" class="modal fade modal-scroll" tabindex="-1"  aria-hidden="true">
+    <a href="#" class="model-close btn" style="color:#FFF;background-color:#c63927" data-dismiss="modal" aria-hidden="true">
+        <i class="fa fa-times"></i>
+    </a>
+
+    <div class="modal-section">
+        <div class="modal-header">
+            <h4 class="modal-title"></h4>
+        </div>
+        <div class="modal-body" style="overflow-x: hidden;">
+            hhh
+        </div>
+    </div>
+
+</div>
 
 <!-- BEGIN CORE PLUGINS -->
 <script src="${base}/resources/assets/global/plugins/jquery.min.js" type="text/javascript"></script>

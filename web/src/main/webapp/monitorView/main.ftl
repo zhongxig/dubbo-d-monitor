@@ -105,8 +105,6 @@
                     <!-- END USER LOGIN DROPDOWN -->
 
                     <li class="dropdown dropdown-user dropdown-dark">
-                        <input type="hidden" id="user_name" value="${name}">
-                        <input type="hidden" id="idpUrl" value="${idpUrl}">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
                             <img alt="" class="img-circle" style="background-color: #86B4DC;" src="${base}/resources/assets/img/ants_img.png">
                             <span class="username username-hide-on-mobile" id="user_name_show">

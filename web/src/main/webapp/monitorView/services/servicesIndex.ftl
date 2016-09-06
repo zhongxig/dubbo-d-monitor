@@ -295,7 +295,7 @@
                                 <div class="stat-number">
                                     <div class="number " id="serviceName">
                                         <i class="fa fa-warning" ></i>
-                                        com.tqmall.athena.client.maintain.MaintainService:1.0.0.daily
+                                        xxx.xxx.xxx.xxx.xxx.xxxService:1.0.0.daily
                                     </div>
                                     <div class="title" id="serviceMethods">
 

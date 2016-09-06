@@ -57,7 +57,7 @@
 
 		dubbo.application.name = ants-monitor
 		dubbo.port = 20882 #此处为port地址
-		zookeeper.address = 127.0.0.1:2181 # 此处为zk地址
+		zookeeper.address = 127.0.0.1:2181 # 此处为zk地址，若多个，则用","隔开。例如（zookeeper.address = 127.0.0.1:2181,127.0.0.2:2181,127.0.0.3:2181）
 		redis.host  = redis://ants-monitor:123456@127.0.0.1:6379/2 #此处为redis数据库 密码@ip:host/db号
 
 	com.ants.monitor.bean.MonitorConstants的initEcsMap方法，在内存中存入自定义线上ip地址和测试环境ip地址。

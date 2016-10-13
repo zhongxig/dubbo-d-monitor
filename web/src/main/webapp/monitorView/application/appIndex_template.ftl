@@ -230,7 +230,7 @@
                                 <div class="caption caption-md">
                                     <i class="icon-bar-chart theme-font-color hide"></i>
                                     <span class="caption-subject theme-font-color bold uppercase">半月方法榜</span>
-                                    <span class="caption-helper">前15名</span>
+                                    <span class="caption-helper">前50名</span>
                                 </div>
                             </div>
                             <div class="portlet-body">

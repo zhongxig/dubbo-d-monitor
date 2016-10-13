@@ -402,13 +402,28 @@ function rankingFunction(){
 
     var loadingEL = $("#tab_app_ranking");
     Metronic.blockUI(loadingEL);
-    $.get("/monitor/application/getMethodRanking",{appName:appName},function(result){
-        var resultList = result.data;
-        rankingFunctionHelp(resultList);
+    $.ajax({
+        type: "GET",
+        url: "/monitor/application/getMethodRanking",
+        data:{appName:appName},
+        //6分钟
+        timeout:360000,
+        error:function(jqXHR, textStatus, errorThrown){
+            if(textStatus=="timeout"){
+                Amm.alertFuc("加载超时，请切换tab，切回来重试");
+            }else{
+                Amm.alertFuc(textStatus);
+            }
+        },
+        success:function(result){
+            var resultList = result.data;
+            rankingFunctionHelp(resultList);
 
-        Amm.changeiframeParentHeight();
-        Metronic.unblockUI(loadingEL);
+            Amm.changeiframeParentHeight();
+            Metronic.unblockUI(loadingEL);
+        }
     });
+    //$.get("/monitor/application/getMethodRanking",{appName:appName},);
 
 }
 

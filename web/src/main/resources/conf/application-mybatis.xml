@@ -22,7 +22,7 @@
         <property name="minEvictableIdleTimeMillis" value="300000"/>
         <property name="defaultAutoCommit" value="true"/>
         <property name="removeAbandoned" value="true"/>
-        <property name="removeAbandonedTimeout" value="60"/>
+        <property name="removeAbandonedTimeout" value="600"/>
         <property name="logAbandoned" value="true"/>
         <!--sql监控，合并sql配置-->
         <property name="filters" value="mergeStat"/>

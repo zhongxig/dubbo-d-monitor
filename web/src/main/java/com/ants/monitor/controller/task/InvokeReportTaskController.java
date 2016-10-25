@@ -4,6 +4,7 @@ import com.alibaba.dubbo.common.Constants;
 import com.ants.monitor.bean.MonitorConstants;
 import com.ants.monitor.bean.bizBean.HostBO;
 import com.ants.monitor.bean.entity.InvokeDO;
+import com.ants.monitor.biz.bussiness.InvokeBiz;
 import com.ants.monitor.biz.support.service.ApplicationService;
 import com.ants.monitor.biz.support.service.HostService;
 import com.ants.monitor.common.tools.TimeUtil;
@@ -38,6 +39,8 @@ public class InvokeReportTaskController {
     private InvokeRedisManager invokeRedisManager;
 
     @Autowired
+    private InvokeBiz invokeBiz;
+    @Autowired
     private ApplicationService applicationService;
     @Autowired
     private HostService hostService;
@@ -52,6 +55,10 @@ public class InvokeReportTaskController {
         //应用作为提供者 每小时被消费的数量
         AppConsumerOnHourProcess appConsumerOnHourProcess = new AppConsumerOnHourProcess();
         taskExecutor.execute(appConsumerOnHourProcess);
+
+        //应用方法排行榜
+        AppMethodRankOnDayProcess appMethodRankOnDayProcess = new AppMethodRankOnDayProcess();
+        taskExecutor.execute(appMethodRankOnDayProcess);
     }
 
     //每天凌晨 00：01分执行
@@ -97,6 +104,17 @@ public class InvokeReportTaskController {
             }
         }
     }
+    //每天每个项目的排行榜统计
+    private class AppMethodRankOnDayProcess implements Runnable {
+        @Override
+        public void run() {
+            try {
+                appMethodRankOnDay();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 
     //每天每个小时小时 :01 统计每个应用每个小时相互调用情况
@@ -106,7 +124,7 @@ public class InvokeReportTaskController {
         String lastHourDay = TimeUtil.getDateString(now);
         String lastHour = TimeUtil.getHourString(lastHourDate);
 
-        Set<String> allApplication = applicationService.getAllApplications();
+        List<String> allApplication = applicationService.getAllApplicationsCache();
 
 
         List<InvokeDO> invokeDOList = invokeRedisManager.getInvokeByHour(lastHour);
@@ -179,7 +197,7 @@ public class InvokeReportTaskController {
         String lastHourDay = TimeUtil.getDateString(now);
         String lastHour = TimeUtil.getHourString(lastHourDate);
 
-        Set<String> allApplication = applicationService.getAllApplications();
+        List<String> allApplication = applicationService.getAllApplicationsCache();
 
         List<InvokeDO> invokeDOList = invokeRedisManager.getInvokeByHour(lastHour);
 
@@ -243,7 +261,7 @@ public class InvokeReportTaskController {
     //每天凌晨 00:01 统计每个应用昨天的每小时消费者消费情况，汇总为一天
     private void appConsumerOnHourToDay() {
         String yesterday = TimeUtil.getBeforDateByNumber(new Date(), -1);
-        Set<String> allApplication = applicationService.getAllApplications();
+        List<String> allApplication = applicationService.getAllApplicationsCache();
 
         for (String applicationName : allApplication) {
             Map<String, Map<String,?>> saveMap = (Map<String, Map<String, ?>>) invokeReportManager.getConsumerByAppOnHour(applicationName,yesterday);
@@ -276,9 +294,19 @@ public class InvokeReportTaskController {
             }
 
             if(!dayMap.isEmpty()){
-                invokeReportManager.saveConsumerByAppOnDay(applicationName,yesterday,dayMap);
+                invokeReportManager.saveConsumerByAppOnDay(applicationName, yesterday, dayMap);
             }
 
+        }
+    }
+
+
+
+    //每天凌晨统计之前一天的每个应用排行榜
+    private void appMethodRankOnDay(){
+        List<String> allApplication = applicationService.getAllApplicationsCache();
+        for (String applicationName : allApplication) {
+            invokeBiz.getMethodRankByAppName(applicationName);
         }
     }
 }

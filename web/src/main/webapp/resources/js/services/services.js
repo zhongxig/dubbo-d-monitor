@@ -431,23 +431,7 @@ function main_service_section(serviceBO) {
         var type = $('#relation_bar_day').data("value");
 
         $('#serviceNameForCharts').text(methodName);
-        var isUsed = serviceArtChart(serviceName,methodName, type);
-
-        //判断 是否有展示 是否被使用
-        var is_used_span = $(this).children('span').text();
-        if(is_used_span == '' || is_used_span == '无'){
-            var the_span = $(this).children('span');
-            if(isUsed == "true"){
-                the_span.removeClass("badge-danger");
-                the_span.addClass("badge-success");
-                the_span.text('有');
-            }else if(is_used_span == ''){
-                the_span.addClass("badge-danger");
-                the_span.removeClass("badge-success");
-                the_span.text('无');
-            }
-
-        }
+        serviceArtChart(serviceName,methodName, type,is_used_method);
     });
 
     //  根据日期筛选
@@ -466,30 +450,33 @@ function main_service_section(serviceBO) {
         var loadingEL = $('#tabbable-custom');
         Metronic.blockUI(loadingEL);
 
-        var isUsed = serviceArtChart(serviceName,methodName, type);
+        serviceArtChart(serviceName,methodName, type,is_used_method);
 
-        //判断 是否有展示 是否被使用
-        var is_used_span = $(".method_class.active").children('span').text();
-        if(is_used_span == '' || is_used_span == '无'){
-            var the_span = $(".method_class.active").children('span');
-            if(isUsed == "true"){
-                the_span.removeClass("badge-danger");
-                the_span.addClass("badge-success");
-                the_span.text('有');
-            }else if(is_used_span == ''){
-                the_span.addClass("badge-danger");
-                the_span.removeClass("badge-success");
-                the_span.text('无');
-            }
 
-        }
-        Metronic.unblockUI(loadingEL);
+
 
     });
 
 
 }
 
+function is_used_method(isUsed){
+    //判断 是否有展示 是否被使用
+    var is_used_span = $(".method_class.active").children('span').text();
+    if(is_used_span == '' || is_used_span == '无'){
+        var the_span = $(".method_class.active").children('span');
+        if(isUsed == "true"){
+            the_span.removeClass("badge-danger");
+            the_span.addClass("badge-success");
+            the_span.text('有');
+        }else if(is_used_span == ''){
+            the_span.addClass("badge-danger");
+            the_span.removeClass("badge-success");
+            the_span.text('无');
+        }
+
+    }
+}
 
 // ====echarts===
 function servicesRelationForceChart(usedApp) {
@@ -595,7 +582,7 @@ function servicesRelationForceChart(usedApp) {
 
 
 // 生成art——tps图
-function serviceArtChart(serviceName,methodName, type){
+function serviceArtChart(serviceName,methodName, type,success_func){
     console.log('start');
     if(serviceName =='' || methodName =='' || type =='' ){
         return false;
@@ -641,10 +628,9 @@ function serviceArtChart(serviceName,methodName, type){
         var pointNumber = 4;
         $.ajax({
             url: headerUrl + "/monitor/services/getMethodSumOneDay",
-            //同步
-            async: false,
             data:{serviceName:serviceName,methodName:methodName,type:type},
             success: function (result) {
+                Metronic.unblockUI($('#tabbable-custom'));
                 var time_array = Amm.getHourArray();
                 var resultMap = result.data;
                 var appList = resultMap.appList;
@@ -657,6 +643,7 @@ function serviceArtChart(serviceName,methodName, type){
                 });
                 consumer = appHtml;
                 storage.setItem(consumer_key,appHtml);
+                $("#serviceAppForCharts").html(consumer);
 
 
                 var tps_array = [];
@@ -678,6 +665,8 @@ function serviceArtChart(serviceName,methodName, type){
                     }
                 });
 
+                success_func(is_used);
+
                 var tps_option = option_String('tps',time_array,tps_array);
                 var art_option = option_String('art',time_array,art_array);
 
@@ -696,15 +685,17 @@ function serviceArtChart(serviceName,methodName, type){
 
 
     }else{
+        Metronic.unblockUI($('#tabbable-custom'));
+        success_func(is_used);
 
         tpsChart.setOption(tps_option);
         artChart.setOption(art_option);
 
         tpsChart.hideLoading();
         artChart.hideLoading();
+
+        $("#serviceAppForCharts").html(consumer);
     }
-    $("#serviceAppForCharts").html(consumer);
-    return is_used;
 
 
 

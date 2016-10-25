@@ -49,6 +49,9 @@ public interface RedisKeyBean {
     //按日统计app消费者的每日情况，15天
     String appConsumerSumOnDayKEY = SYSTEM_PREFIX+"%s_app_consumer_on_day_%s";
 
+
+    //application 名单,一小时
+    String APP_LIST_KEY = SYSTEM_PREFIX+"app_list";
     /*===not used=====*/
     /**每日用户的ip：name**/
     String userIpNameKey = SYSTEM_PREFIX+"user_ip_name_map_%s";

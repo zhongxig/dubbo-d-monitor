@@ -10,14 +10,14 @@ import com.ants.monitor.bean.bizBean.HostBO;
 import com.ants.monitor.bean.bizBean.ServiceBO;
 import com.ants.monitor.biz.dubboService.DubboMonitorService;
 import com.ants.monitor.biz.dubboService.RegistryContainer;
+import com.ants.monitor.common.redis.RedisClientTemplate;
+import com.ants.monitor.common.redis.RedisKeyBean;
+import com.ants.monitor.common.tools.JsonUtil;
 import com.ants.monitor.common.tools.Tool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by zxg on 15/11/11.
@@ -30,6 +30,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     private RegistryContainer registryContainer;
     @Autowired
     private DubboMonitorService dubboMonitorService;
+    @Autowired
+    private RedisClientTemplate redisClientTemplate;
 
     @Override
     public Set<String> getAllApplications() {
@@ -59,6 +61,35 @@ public class ApplicationServiceImpl implements ApplicationService {
         }
 
         return resultApplications;
+    }
+
+
+    @Override
+    public List<String> getAllApplicationsCache() {
+        List<String> resultList = new ArrayList<>();
+        String redisKey = RedisKeyBean.APP_LIST_KEY;
+        // 从redis中取
+        String redisResultString = redisClientTemplate.get(redisKey);
+        if(redisResultString != null && redisClientTemplate.isNone(redisResultString)){
+            //缓存里判定之前查找为空，因此此次不走数据库，直接空
+            return resultList;
+        }
+        if(redisResultString != null){
+            //返回redis 缓存结果集
+            return JsonUtil.jsonStrToList(redisResultString, String.class);
+        }
+        //redis 中无数据，进行数据库操作
+        Set<String> resultSet = getAllApplications();
+
+        //缓存一份到数据库
+        if(resultSet.isEmpty()){
+            redisClientTemplate.setNone(redisKey);
+        }else{
+            resultList = new ArrayList<>(resultSet);
+            redisClientTemplate.lazySet(redisKey,resultList,RedisKeyBean.RREDIS_EXP_HOURS);
+        }
+
+        return resultList;
     }
 
     @Override

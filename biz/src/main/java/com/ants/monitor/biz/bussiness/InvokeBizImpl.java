@@ -58,7 +58,7 @@ public class InvokeBizImpl implements InvokeBiz {
         if(resultList.isEmpty()){
             redisClientTemplate.setNone(redisKey);
         }else{
-            redisClientTemplate.lazySet(redisKey,resultList,RedisKeyBean.RREDIS_EXP_HOURS);
+            redisClientTemplate.lazySet(redisKey,resultList,RedisKeyBean.RREDIS_EXP_HOURS*23);
         }
 
 

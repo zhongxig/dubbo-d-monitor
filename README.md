@@ -76,6 +76,12 @@
 ---
 
 # 五、更改历史
+### 2016.10.25 -`master`
+> dubbo-d-monitor 1.1.3:<br>
+1. 方法排行榜 每日凌晨统计，走缓存<br>
+2. application 缓存到 redis中<br>
+3. service 的method 的数据展示 异步加载<br>
+
 ### 2016.08.10 -`master`
 > dubbo-d-monitor 1.1.2:<br>
 1. 新增全局alert 样式js和css<br>

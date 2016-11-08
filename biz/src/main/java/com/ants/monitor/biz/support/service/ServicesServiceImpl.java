@@ -28,8 +28,6 @@ public class ServicesServiceImpl implements ServicesService {
     @Autowired
     private RegistryContainer registryContainer;
 
-    @Autowired
-    private DubboMonitorService dubboMonitorService;
 
     @Override
     public Set<String> getAllServicesString() {
@@ -159,7 +157,7 @@ public class ServicesServiceImpl implements ServicesService {
                 serviceBO.setOwnerApp(ownerApp);
                 //本地起了测试或线上，测试起了线上
                 String host = url.getHost();
-                String hostTime = dubboMonitorService.getServiceConsumerTime(service,host);
+                String hostTime = DubboMonitorService.getServiceConsumerTime(service,host);
                 if(hostTime != null) {
                     //时间处理
                     if (finalTime.equals("")) {

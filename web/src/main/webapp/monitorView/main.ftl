@@ -89,7 +89,7 @@
                     <li class="dropdown dropdown-user dropdown-dark">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown" data-hover="dropdown" data-close-others="true">
 						<span class="username username-hide-on-mobile" style="padding-top: 6px;">
-						    最近更新数据时间：<span id="final_update_time"></span>
+						    最近变更服务时间：<span id="final_update_time"></span>
                         </span>
                         </a>
                     <#--<ul class="dropdown-menu dropdown-menu-default">-->

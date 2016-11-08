@@ -28,8 +28,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     @Autowired
     private RegistryContainer registryContainer;
-    @Autowired
-    private DubboMonitorService dubboMonitorService;
+
     @Autowired
     private RedisClientTemplate redisClientTemplate;
 
@@ -257,7 +256,7 @@ public class ApplicationServiceImpl implements ApplicationService {
         String host = url.getHost();
         String port = String.valueOf(url.getPort());
         HostBO hostBO = new HostBO(host,port);
-        String finalTime = dubboMonitorService.getServiceConsumerTime(serviceName,host);
+        String finalTime = DubboMonitorService.getServiceConsumerTime(serviceName,host);
 
         Map<String,Set<ServiceBO>> thisServiceMap = applicationBO.getServiceMap();
         if(null == thisServiceMap) thisServiceMap = new HashMap<>();

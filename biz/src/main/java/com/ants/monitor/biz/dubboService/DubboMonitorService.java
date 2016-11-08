@@ -3,6 +3,7 @@ package com.ants.monitor.biz.dubboService;
 import com.alibaba.dubbo.common.Constants;
 import com.alibaba.dubbo.common.URL;
 import com.alibaba.dubbo.common.utils.ConfigUtils;
+import com.alibaba.dubbo.common.utils.NamedThreadFactory;
 import com.alibaba.dubbo.monitor.MonitorService;
 import com.ants.monitor.bean.UUIDGenerator;
 import com.ants.monitor.bean.bizBean.HostBO;
@@ -16,23 +17,19 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 /**
  * Created by zxg on 15/11/2.
  */
-@Service
 @Slf4j
 public class DubboMonitorService implements MonitorService {
 
@@ -41,50 +38,58 @@ public class DubboMonitorService implements MonitorService {
     @Autowired
     private HostService hostService;
 
-    private BlockingQueue<URL> queue;
+    private final  BlockingQueue<URL> queue;
 
     private static final String POISON_PROTOCOL = "poison";
 
+    private volatile boolean running = true;
 
     //方法最后的消费时间
     private static final Map<String,  String> serviceFinalTimeMap = new ConcurrentHashMap<>();
 
-//    private volatile boolean running = true;
 
+    // 定时任务执行器
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(3, new NamedThreadFactory("DubboMonitorTimer", true));
+
+    private final ScheduledFuture<?> scheduledFuture;
 
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
     @Autowired
     private InvokeRedisManager invokeRedisManager;
+
     @Resource(name="invokeDOMapper")
     private InvokeDOMapper invokeDOMapper;
 
-
-    @PostConstruct
-    private void init() {
+    public DubboMonitorService() {
         queue = new LinkedBlockingQueue<URL>(Integer.parseInt(ConfigUtils.getProperty("dubbo.monitor.queue", "100000")));
 
-//        saveInvokeThread = new Thread(new Runnable() {
-//            public void run() {
-//                while(running) {
-//                    try {
-//                        saveInvoke();
-//                    } catch (Throwable t) { // 防御性容错
-//                        log.error("Unexpected error occur at write stat log, cause: " + t.getMessage(), t);
-//                        try {
-//                            Thread.sleep(5000); // 失败延迟
-//                        } catch (Throwable t2) {
-//                        }
-//                    }
-//                }
-//            }
-//        });
-//        saveInvokeThread.setDaemon(true);
-//        saveInvokeThread.setName("DubboMonitorAsyncWriteLogThread");
-//        saveInvokeThread.start();
+        scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(new Runnable() {
+            public void run() {
+//                log.info("=====now time is ==="+TimeUtil.getTimeString(new Date())+" 线程：" + Thread.currentThread().getName());
+                while (running) {
+                    try {
+                        if(queue.isEmpty()){
+                            break;
+                        }
+                        saveInvoke(); // 记录统计日志
+                    } catch (Throwable t) { // 防御性容错
+                        log.error("Unexpected error occur at write stat log, cause: " + t.getMessage(), t);
+                        try {
+                            Thread.sleep(5000); // 失败延迟
+                        } catch (Throwable t2) {
+                            log.error("sleep then still Throwable");
+                            t2.printStackTrace();
+                        }
+                    }
+                }
+            }
+        }, 10, 10, TimeUnit.SECONDS);
     }
+
+
     //获得service最后被消费的时间
-    public String getServiceConsumerTime(String serviceName,String provideHost){
+    public static String getServiceConsumerTime(String serviceName,String provideHost){
         String key = serviceName+provideHost;
         return serviceFinalTimeMap.get(key);
     }
@@ -92,9 +97,6 @@ public class DubboMonitorService implements MonitorService {
     @Override
     public void collect(URL statistics) {
         queue.offer(statistics);
-
-        StartInvokeProcess startInvokeProcess = new StartInvokeProcess();
-        taskExecutor.execute(startInvokeProcess);
     }
 
     @Override
@@ -200,6 +202,18 @@ public class DubboMonitorService implements MonitorService {
         }
     }
 
+    @PreDestroy
+    private void destroy() {
+        try {
+            running = false;
+            scheduledFuture.cancel(true);
+//            queue.offer(new URL(POISON_PROTOCOL, NetUtils.LOCALHOST, 0));
+        } catch (Throwable t) {
+            log.warn(t.getMessage(), t);
+        }
+    }
+
+
 
     //内部线程类，利用线程池异步存储发送过来的统计数据
     @AllArgsConstructor
@@ -217,16 +231,5 @@ public class DubboMonitorService implements MonitorService {
         }
     }
 
-    //内部线程类，开始处理url数据
-    private class StartInvokeProcess implements Runnable {
-        @Override
-        public void run() {
-            try {
-                saveInvoke();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
 }

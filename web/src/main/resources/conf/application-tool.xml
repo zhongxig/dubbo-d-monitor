@@ -11,11 +11,11 @@
         <!-- 线程池维护线程的最少数量 -->
         <property name="corePoolSize" value="5"/>
         <!-- 线程池维护线程所允许的空闲时间 -->
-        <property name="keepAliveSeconds" value="30000"/>
+        <property name="keepAliveSeconds" value="300"/>
         <!-- 线程池维护线程的最大数量 -->
-        <property name="maxPoolSize" value="80"/>
+        <property name="maxPoolSize" value="50"/>
         <!-- 线程池所使用的缓冲队列 -->
-        <property name="queueCapacity" value="200"/>
+        <property name="queueCapacity" value="500"/>
     </bean>
 
     <!--TASk 定时任务-->

@@ -54,6 +54,9 @@
 在IDEA中
 #### 1.初始化配置：
     web/src/main/resources/application.properties
+		jdbc.url              = jdbc:mysql://127.0.0.1:3306/monitor?useUnicode=true&characterEncoding=utf-8&autoReconnect=true # 此处为自身的mysql地址和schema，此处仅供参考
+        jdbc.username         = root # mysql的帐号，此处仅供参考
+        jdbc.password         = 123456 # mysql的密码，此处仅供参考
 
 		dubbo.application.name = ants-monitor
 		dubbo.port = 20882 #此处为port地址
@@ -76,6 +79,12 @@
 ---
 
 # 五、更改历史
+### 2016.11.08 -`master`
+> dubbo-d-monitor 1.1.4:<br>
+1. 修复dubboService 数据采集导致的OOM bug<br>
+2. 修改部分文案<br>
+3. 增大线程池所使用的缓冲队列<br>
+
 ### 2016.10.25 -`master`
 > dubbo-d-monitor 1.1.3:<br>
 1. 方法排行榜 每日凌晨统计，走缓存<br>

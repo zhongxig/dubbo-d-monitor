@@ -56,9 +56,6 @@ public class InvokeReportTaskController {
         AppConsumerOnHourProcess appConsumerOnHourProcess = new AppConsumerOnHourProcess();
         taskExecutor.execute(appConsumerOnHourProcess);
 
-        //应用方法排行榜
-        AppMethodRankOnDayProcess appMethodRankOnDayProcess = new AppMethodRankOnDayProcess();
-        taskExecutor.execute(appMethodRankOnDayProcess);
     }
 
     //每天凌晨 00：01分执行
@@ -68,6 +65,17 @@ public class InvokeReportTaskController {
         //应用作为提供者 每天被消费的数量
         AppConsumerOnDayProcess appConsumerOnDayProcess = new AppConsumerOnDayProcess();
         taskExecutor.execute(appConsumerOnDayProcess);
+        //应用方法排行榜
+        taskExecutor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    appMethodRankOnDay();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
     }
 
@@ -99,17 +107,6 @@ public class InvokeReportTaskController {
         public void run() {
             try {
                 appConsumerOnHourToDay();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    //每天每个项目的排行榜统计
-    private class AppMethodRankOnDayProcess implements Runnable {
-        @Override
-        public void run() {
-            try {
-                appMethodRankOnDay();
             } catch (Exception e) {
                 e.printStackTrace();
             }

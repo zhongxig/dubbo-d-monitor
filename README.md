@@ -10,6 +10,8 @@
 ## 界面效果图：
 ![image](https://github.com/zhongxig/ants-monitor-on-Redis/raw/master/monitor-dashboard.png)
 
+
+## 
 ---
 
 # 一、特性：
@@ -78,7 +80,15 @@
 
 ---
 
-# 五、更改历史
+# 五、获取帮助
+
+如果你在使用过程中遇到任何问题，请在这里告诉我们。
+
+dubbo-d-monitor讨论QQ群号是：413255856， 加前请注明 dubbo监控中心学习讨论。
+
+---
+
+# 六、更改历史
 ### 2016.11.08 -`master`
 > dubbo-d-monitor 1.1.4:<br>
 1. 修复dubboService 数据采集导致的OOM bug<br>

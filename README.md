@@ -78,6 +78,10 @@
 
 #### 4.mysql数据库建表sql：根目录下`dubbo_invoker.sql`
 
+#### 5. 提供者或消费者应用接入监控中心(非此项目，为其他dubbo项目)：
+	1）方式一（zk自动发现dubbo监控中心）:<dubbo:monitor protocol="registry"/>
+	2) 方式二（直连）:<dubbo:monitor address="10.20.130.230:12080"/>
+
 ---
 
 # 五、获取帮助

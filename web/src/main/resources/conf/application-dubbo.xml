@@ -18,8 +18,8 @@
 
     <!--<dubbo:monitor protocol="registry"/>-->
 
-    <!-- 暴露服务配置 -->
-    <dubbo:service interface="com.alibaba.dubbo.monitor.MonitorService" ref="monitorService" />
+    <!-- 暴露服务配置,超时时间60s -->
+    <dubbo:service interface="com.alibaba.dubbo.monitor.MonitorService" ref="monitorService"  timeout="60000"/>
 
     <bean id="monitorService" class="com.ants.monitor.biz.dubboService.DubboMonitorService" />
 

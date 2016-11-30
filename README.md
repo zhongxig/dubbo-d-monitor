@@ -10,6 +10,8 @@
 ## 界面效果图：
 ![image](https://github.com/zhongxig/ants-monitor-on-Redis/raw/master/monitor-dashboard.png)
 
+
+## 
 ---
 
 # 一、特性：
@@ -76,9 +78,21 @@
 
 #### 4.mysql数据库建表sql：根目录下`dubbo_invoker.sql`
 
+#### 5. 提供者或消费者应用接入监控中心(非此项目，为其他dubbo项目)：
+	1）方式一（zk自动发现dubbo监控中心）:<dubbo:monitor protocol="registry"/>
+	2) 方式二（直连）:<dubbo:monitor address="10.20.130.230:12080"/>
+
 ---
 
-# 五、更改历史
+# 五、获取帮助
+
+如果你在使用过程中遇到任何问题，请在这里告诉我们。
+
+dubbo-d-monitor讨论QQ群号是：413255856， 加前请注明 dubbo监控中心学习讨论。
+
+---
+
+# 六、更改历史
 ### 2016.11.08 -`master`
 > dubbo-d-monitor 1.1.4:<br>
 1. 修复dubboService 数据采集导致的OOM bug<br>

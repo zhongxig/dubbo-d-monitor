@@ -1,4 +1,4 @@
-package com.ants.monitor.common.redis;
+package com.ants.monitor.common.cache.redis;
 
 import redis.clients.jedis.ShardedJedis;
 

@@ -1,4 +1,4 @@
-package com.ants.monitor.common.redis;
+package com.ants.monitor.common.cache.redis;
 
 import com.ants.monitor.common.tools.JsonUtil;
 import lombok.extern.slf4j.Slf4j;

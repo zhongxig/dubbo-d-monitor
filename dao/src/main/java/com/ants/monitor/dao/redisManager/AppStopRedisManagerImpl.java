@@ -1,8 +1,8 @@
 package com.ants.monitor.dao.redisManager;
 
 import com.ants.monitor.bean.bizBean.ApplicationChangeBO;
-import com.ants.monitor.common.redis.RedisClientTemplate;
-import com.ants.monitor.common.redis.RedisKeyBean;
+import com.ants.monitor.common.cache.redis.RedisClientTemplate;
+import com.ants.monitor.common.cache.redis.RedisKeyBean;
 import com.ants.monitor.common.tools.JsonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

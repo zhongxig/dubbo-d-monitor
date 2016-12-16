@@ -1,9 +1,7 @@
-package com.ants.monitor.common.redis;
+package com.ants.monitor.common.cache.redis;
 
 import com.ants.monitor.common.tools.SpringContextsUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

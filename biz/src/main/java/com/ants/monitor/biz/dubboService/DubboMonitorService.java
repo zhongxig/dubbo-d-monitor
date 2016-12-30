@@ -39,6 +39,7 @@ public class DubboMonitorService implements MonitorService {
     private HostService hostService;
 
     private final  BlockingQueue<URL> queue;
+    private final BlockingQueue<InvokeDO> saveSqlQueue;
 
     private static final String POISON_PROTOCOL = "poison";
 
@@ -63,7 +64,10 @@ public class DubboMonitorService implements MonitorService {
 
     public DubboMonitorService() {
         queue = new LinkedBlockingQueue<URL>(Integer.parseInt(ConfigUtils.getProperty("dubbo.monitor.queue", "100000")));
+        saveSqlQueue = new LinkedBlockingQueue<InvokeDO>(Integer.parseInt(ConfigUtils.getProperty("dubbo.monitor.sql_data", "100000")));
 
+        // 保存数据到redis和数据库
+        saveData();
         scheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(new Runnable() {
             public void run() {
 //                log.info("=====now time is ==="+TimeUtil.getTimeString(new Date())+" 线程：" + Thread.currentThread().getName());
@@ -87,6 +91,39 @@ public class DubboMonitorService implements MonitorService {
         }, 10, 10, TimeUnit.SECONDS);
     }
 
+    private void saveData()  {
+        new Thread() {
+
+            @Override
+            public void run() {
+                while (true) {
+                    if (saveSqlQueue.isEmpty()) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        continue;
+                    }
+
+                    InvokeDO invokeDO = null;
+                    try {
+                        invokeDO = saveSqlQueue.take();
+                    } catch (InterruptedException e) {
+                        log.info("saveSqlQueue error"+e.getMessage(),e);
+                    }
+                    if(invokeDO != null) {
+                        String hour = TimeUtil.getHourString(new Date());
+                        // 缓存放一份
+                        invokeRedisManager.saveInvoke(hour, invokeDO);
+                        // 持久化放一份
+                        invokeDOMapper.insertSelective(invokeDO);
+                    }
+                }
+            }
+        }.start();
+
+    }
 
     //获得service最后被消费的时间
     public static String getServiceConsumerTime(String serviceName,String provideHost){
@@ -184,8 +221,8 @@ public class DubboMonitorService implements MonitorService {
 
 
 
-        SaveInvokeThread saveInvokeThread = new SaveInvokeThread(dubboInvoke,hour);
-        taskExecutor.execute(saveInvokeThread);
+//        SaveInvokeThread saveInvokeThread = new SaveInvokeThread(dubboInvoke,hour);
+//        taskExecutor.execute(saveInvokeThread);
 
         //保存其最后被消费时间
         if(hostBO != null) {
@@ -200,6 +237,10 @@ public class DubboMonitorService implements MonitorService {
                 }
             }
         }
+
+
+        // 往数据库里面塞数据
+        saveSqlQueue.offer(dubboInvoke);
     }
 
     @PreDestroy

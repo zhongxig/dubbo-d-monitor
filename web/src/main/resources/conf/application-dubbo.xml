@@ -8,7 +8,7 @@
 
     <!--dubbo配置-->
     <!-- 当前应用信息配置 -->
-    <dubbo:application name="${dubbo.application.name}" organization="Data" owner="rui.bai"/>
+    <dubbo:application name="${dubbo.application.name}" organization="Data" owner=""/>
 
     <!-- 连接注册中心配置 -->
     <dubbo:registry protocol="zookeeper" address="${dubbo.registry.address}"/>

@@ -103,5 +103,15 @@ public class TimeTest {
             e.printStackTrace();
         }
     }
+
+
+    @Test
+    public void testThreadLocal(){
+        ThreadLocal<Integer> threadLocal = new ThreadLocal<>();
+        threadLocal.set(1);
+        System.out.println("=====:" + threadLocal.get());
+        threadLocal.set(2);
+        System.out.println("=====:" + threadLocal.get());
+    }
 }
 

@@ -86,7 +86,6 @@ public class RegistryContainerImpl implements RegistryContainer {
             redisChangeAppCaChe.putAll(map);
         }
         /**比较此次初始化跟上次的区别**/
-        Boolean appCacheChange = false;
         //insert新增
         for (Map.Entry<String, Set<ApplicationChangeBO>> nowEntry : changeAppCaChe.entrySet()) {
             String category = nowEntry.getKey();
@@ -96,7 +95,6 @@ public class RegistryContainerImpl implements RegistryContainer {
             for (ApplicationChangeBO newChangeBO : nowSet) {
                 if (!redisSet.contains(newChangeBO)) {
                     appChangeService.afterChangeInsertDo(newChangeBO);
-                    appCacheChange = true;
                 }
             }
         }
@@ -109,13 +107,8 @@ public class RegistryContainerImpl implements RegistryContainer {
             for (ApplicationChangeBO redisBo : redisSet) {
                 if (!nowSet.contains(redisBo)) {
                     appChangeService.afterChangeDeleteDo(redisBo);
-                    appCacheChange = true;
                 }
             }
-        }
-        //appCache发生变化
-        if (appCacheChange) {
-            saveChangeAppCaChe();
         }
 
         finalDataMap.put(IS_START_MONITOR, true);

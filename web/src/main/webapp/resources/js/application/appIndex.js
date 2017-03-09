@@ -241,7 +241,7 @@ function initServiceTable(appName) {
 
     var content_list = [];
     var tab_content_first = true;
-    var status_name = {'online':'线上','test':'测试','local':'本地','wrong':'错误异常'}
+    var status_name = {'online':'线上','test':'测试','local':'本地','wrong':'错误异常'};
     $.each(serviceMap,function(status,serviceSet){
         //标签头
         var tab_map = {'name':status_name[status],'status':status,'class':''};

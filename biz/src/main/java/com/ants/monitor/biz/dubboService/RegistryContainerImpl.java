@@ -36,18 +36,23 @@ public class RegistryContainerImpl implements RegistryContainer {
     //存关系
     private final Map<String, Map<String, Set<URL>>> registryCache = new ConcurrentHashMap<>();
     //key:serviceInterface value:Set<service:version>－－用作provider 停止服务时 取消其内容于registryCache中
-    private final Map<String,  Set<String>> interfaceCache = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> interfaceCache = new ConcurrentHashMap<>();
 
     //变更的app的变化 provider:list<bo> || consumer:list<bo>，每次启动时从redis读取
-    private final Map<String,Set<ApplicationChangeBO>> changeAppCaChe = new ConcurrentHashMap<>();
+    private final Map<String, Set<ApplicationChangeBO>> changeAppCaChe = new ConcurrentHashMap<>();
     //上次启动时存在redis的数据
-    private final Map<String,Set<ApplicationChangeBO>> redisChangeAppCaChe = new ConcurrentHashMap<>();
+    private final Map<String, Set<ApplicationChangeBO>> redisChangeAppCaChe = new ConcurrentHashMap<>();
 
-    /**判断是否开始监控数据变化
+    /**
+     * 判断是否开始监控数据变化
      * time:执行时间
      * startMonitor:是否开始执行
      */
     private final Map<String, Object> finalDataMap = new ConcurrentHashMap<>();
+    // 最后时间戳
+    private static final String NOW_TIME_KEY = "now";
+    // 是否初始化完成，可以正常监控
+    private static final String IS_START_MONITOR = "isStartMonitor";
 
     @Reference
     private RegistryService registry;
@@ -56,64 +61,64 @@ public class RegistryContainerImpl implements RegistryContainer {
 
 
     public Map<String, Map<String, Set<URL>>> getRegistryCache() {
-        if(!registryCache.containsKey(Constants.PROVIDERS_CATEGORY)){
-            registryCache.put(Constants.PROVIDERS_CATEGORY,new ConcurrentHashMap<String, Set<URL>>());
+        if (!registryCache.containsKey(Constants.PROVIDERS_CATEGORY)) {
+            registryCache.put(Constants.PROVIDERS_CATEGORY, new ConcurrentHashMap<String, Set<URL>>());
         }
-        if(!registryCache.containsKey(Constants.CONSUMERS_CATEGORY)){
-            registryCache.put(Constants.CONSUMERS_CATEGORY,new ConcurrentHashMap<String, Set<URL>>());
+        if (!registryCache.containsKey(Constants.CONSUMERS_CATEGORY)) {
+            registryCache.put(Constants.CONSUMERS_CATEGORY, new ConcurrentHashMap<String, Set<URL>>());
         }
-        if(!registryCache.containsKey(Constants.CONFIGURATORS_CATEGORY)){
-            registryCache.put(Constants.CONFIGURATORS_CATEGORY,new ConcurrentHashMap<String, Set<URL>>());
+        if (!registryCache.containsKey(Constants.CONFIGURATORS_CATEGORY)) {
+            registryCache.put(Constants.CONFIGURATORS_CATEGORY, new ConcurrentHashMap<String, Set<URL>>());
         }
 
         return Collections.unmodifiableMap(registryCache);
     }
 
     public Date getFinalUpdateTime() {
-        Date now = (Date) finalDataMap.get("now");
+        Date now = (Date) finalDataMap.get(NOW_TIME_KEY);
         return now;
     }
 
     //初始化changeApp--redis取出,比较后，执行存储
-    public void initRedisChangeAppCaChe(){
-        Map<String,Set<ApplicationChangeBO>> map = appChangeService.getChangeAppCache();
-        if(null != map){
+    public void initRedisChangeAppCaChe() {
+        Map<String, Set<ApplicationChangeBO>> map = appChangeService.getChangeAppCache();
+        if (null != map) {
             redisChangeAppCaChe.putAll(map);
         }
         /**比较此次初始化跟上次的区别**/
         Boolean appCacheChange = false;
         //insert新增
-        for(Map.Entry<String,Set<ApplicationChangeBO>> nowEntry: changeAppCaChe.entrySet()){
+        for (Map.Entry<String, Set<ApplicationChangeBO>> nowEntry : changeAppCaChe.entrySet()) {
             String category = nowEntry.getKey();
             Set<ApplicationChangeBO> nowSet = nowEntry.getValue();
             Set<ApplicationChangeBO> redisSet = redisChangeAppCaChe.get(category);
-            if(null == redisSet) redisSet = new ConcurrentHashSet<>();
-            for(ApplicationChangeBO newChangeBO : nowSet){
-                if(!redisSet.contains(newChangeBO)){
+            if (null == redisSet) redisSet = new ConcurrentHashSet<>();
+            for (ApplicationChangeBO newChangeBO : nowSet) {
+                if (!redisSet.contains(newChangeBO)) {
                     appChangeService.afterChangeInsertDo(newChangeBO);
                     appCacheChange = true;
                 }
             }
         }
         //delete减少
-        for(Map.Entry<String,Set<ApplicationChangeBO>> redisEntry: redisChangeAppCaChe.entrySet()){
+        for (Map.Entry<String, Set<ApplicationChangeBO>> redisEntry : redisChangeAppCaChe.entrySet()) {
             String category = redisEntry.getKey();
             Set<ApplicationChangeBO> redisSet = redisEntry.getValue();
             Set<ApplicationChangeBO> nowSet = changeAppCaChe.get(category);
-            if(null == nowSet) nowSet = new ConcurrentHashSet<>();
-            for(ApplicationChangeBO redisBo : redisSet){
-                if(!nowSet.contains(redisBo)){
+            if (null == nowSet) nowSet = new ConcurrentHashSet<>();
+            for (ApplicationChangeBO redisBo : redisSet) {
+                if (!nowSet.contains(redisBo)) {
                     appChangeService.afterChangeDeleteDo(redisBo);
                     appCacheChange = true;
                 }
             }
         }
         //appCache发生变化
-        if(appCacheChange){
+        if (appCacheChange) {
             saveChangeAppCaChe();
         }
 
-        finalDataMap.put("startMonitor", true);
+        finalDataMap.put(IS_START_MONITOR, true);
     }
 
     //    @PostConstruct
@@ -124,12 +129,14 @@ public class RegistryContainerImpl implements RegistryContainer {
                 Constants.VERSION_KEY, Constants.ANY_VALUE,
                 Constants.CLASSIFIER_KEY, Constants.ANY_VALUE,
                 Constants.CATEGORY_KEY, Constants.PROVIDERS_CATEGORY + ","
-                + Constants.CONSUMERS_CATEGORY+ ","
+                + Constants.CONSUMERS_CATEGORY + ","
                 + Constants.CONFIGURATORS_CATEGORY,
                 Constants.CHECK_KEY, String.valueOf(false));
         if (null == registry) {
             registry = (RegistryService) SpringContextsUtil.getBean("registryService");
         }
+        finalDataMap.put(IS_START_MONITOR, false);
+
 
         // 订阅符合条件的已注册数据，当有注册数据变更时自动推送.
         registry.subscribe(subscribeUrl, new NotifyListener() {
@@ -187,18 +194,19 @@ public class RegistryContainerImpl implements RegistryContainer {
                         interfaceServices.add(service);
                     }
                 }
-                // 提供者，批量的interface，涉及provider的减少
-                IsProviderReduce(interfaces);
-
-                //涉及consumer新增、减少；provider新增
-                categoryServiceChange(categories);
-
-                //监控app host是否增加减少
-
-                appChangesMonitor();
+                if (interfaces.size() != 0) {
+                    // 提供者，批量的interface，涉及provider的减少
+                    IsProviderReduce(interfaces);
+                }
 
 
-                finalDataMap.put("now", now);
+                if (categories.size() != 0) {
+                    //涉及consumer新增、减少；provider新增
+                    categoryServiceChange(categories);
+                }
+
+                finalDataMap.put(NOW_TIME_KEY, now);
+
             }
         });
     }
@@ -214,9 +222,12 @@ public class RegistryContainerImpl implements RegistryContainer {
     public void stop() {
     }
 
-    /**=========================private=============================================**/
+    /**
+     * =========================private=============================================
+     **/
     //涉及consumer新增、减少；provider新增
-    private void categoryServiceChange( final Map<String, Map<String, Set<URL>>> categories){
+    private void categoryServiceChange(final Map<String, Map<String, Set<URL>>> categories) {
+        boolean appCacheChange = false;
         for (Map.Entry<String, Map<String, Set<URL>>> categoryEntry : categories.entrySet()) {
             String category = categoryEntry.getKey();
             Map<String, Set<URL>> services = registryCache.get(category);
@@ -224,12 +235,55 @@ public class RegistryContainerImpl implements RegistryContainer {
                 services = new ConcurrentHashMap<>();
                 registryCache.put(category, services);
             }
-            services.putAll(categoryEntry.getValue());
+            Map<String, Set<URL>> NewServices = categoryEntry.getValue();
+            if (compareOldAndNewServices(services, NewServices)) {
+                appCacheChange = true;
+            }
+            services.putAll(NewServices);
+        }
+        //初始化完成方可对比处理数据
+        Boolean startMonitor = (Boolean) finalDataMap.get(IS_START_MONITOR);
+
+        //appCache发生变化
+        if (appCacheChange && startMonitor) {
+            saveChangeAppCaChe();
         }
     }
 
+    //涉及consumer新增、减少；provider新增-- 更改保存到列表和 redis中
+    private boolean compareOldAndNewServices(Map<String, Set<URL>> oldServices, Map<String, Set<URL>> newServices) {
+        boolean appCacheChange = false;
+        for (Map.Entry<String, Set<URL>> oldEntry : oldServices.entrySet()) {
+            String service = oldEntry.getKey();
+            Set<URL> oldUrlSet = oldEntry.getValue();
+            if (!newServices.containsKey(service)) {
+                continue;
+            }
+
+            Set<URL> newUrlSet = newServices.get(service);
+
+            //减少
+            for (URL url : oldUrlSet) {
+                if (!newUrlSet.contains(url)) {
+                    removeFromChangeAppCaChe(url);
+                    appCacheChange = true;
+                }
+            }
+
+            // 新增
+            for (URL url : newUrlSet) {
+                if (!oldUrlSet.contains(url)) {
+                    addToChangeAppCaChe(url);
+                    appCacheChange = true;
+                }
+            }
+        }
+        return appCacheChange;
+    }
+
     // url以empty开头的url处理，移除此数据:涉及provider、consumer的减少
-    private void UrlEmptyDo(String category,URL url){
+    private void UrlEmptyDo(String category, URL url) {
+        boolean appCacheChange = false;
 
         Map<String, Set<URL>> services = registryCache.get(category);
         if (services != null) {
@@ -239,7 +293,14 @@ public class RegistryContainerImpl implements RegistryContainer {
             if (!Constants.ANY_VALUE.equals(group) && !Constants.ANY_VALUE.equals(version)) {
                 String service = url.getServiceKey();
 
+                Set<URL> urlSet = services.get(service);
+                for (URL removeUrl : urlSet) {
+                    // 从 changeAppCache 中移除数据
+                    appCacheChange = true;
+                    removeFromChangeAppCaChe(removeUrl);
+                }
                 services.remove(service);
+
             } else {
                 String urlService = url.getServiceInterface();
                 for (Map.Entry<String, Set<URL>> serviceEntry : services.entrySet()) {
@@ -248,111 +309,118 @@ public class RegistryContainerImpl implements RegistryContainer {
                             && (Constants.ANY_VALUE.equals(group) || StringUtils.isEquals(group, Tool.getGroup(service)))
                             && (Constants.ANY_VALUE.equals(version) || StringUtils.isEquals(version, Tool.getVersion(service)))) {
 
+                        Set<URL> urlSet = serviceEntry.getValue();
+                        for (URL removeUrl : urlSet) {
+                            appCacheChange = true;
+                            removeFromChangeAppCaChe(removeUrl);
+                        }
                         services.remove(service);
                     }
                 }
             }
+
+
+            //初始化完成方可对比处理数据
+            Boolean startMonitor = (Boolean) finalDataMap.get(IS_START_MONITOR);
+
+            //appCache发生变化
+            if (appCacheChange && startMonitor) {
+                saveChangeAppCaChe();
+            }
+
         }
     }
 
 
     // 提供者，批量的interface，涉及providers的减少+禁用数据的更改
-    private void IsProviderReduce(final Map<String,  Set<String>> interfaces){
+    private void IsProviderReduce(final Map<String, Set<String>> interfaces) {
         for (Map.Entry<String, Set<String>> interfaceServices : interfaces.entrySet()) {
             String interfaceName = interfaceServices.getKey();
             Set<String> interfaceServicesCache = interfaceCache.get(interfaceName);
-            if(null == interfaceServicesCache){
+            if (null == interfaceServicesCache) {
                 interfaceServicesCache = new ConcurrentHashSet<>();
-                interfaceCache.put(interfaceName,interfaceServicesCache);
-            }else{
+                interfaceCache.put(interfaceName, interfaceServicesCache);
+            } else {
                 Set<String> interfaceServicesNow = interfaceServices.getValue();
                 // 减少的剔除掉，新增的增加
-                for(String service : interfaceServicesCache){
-                    if(!interfaceServicesNow.contains(service)){
+                for (String service : interfaceServicesCache) {
+                    if (!interfaceServicesNow.contains(service)) {
                         Map<String, Set<URL>> services = registryCache.get(Constants.PROVIDERS_CATEGORY);
 
                         services.remove(service);
                     }
                 }
-                interfaceCache.put(interfaceName,interfaceServicesNow);
+                interfaceCache.put(interfaceName, interfaceServicesNow);
             }
         }
     }
 
-    //AppChange对象变化后的处理
-    private void appChangesMonitor() {
-        Boolean appCacheChange = false;
+    // 从appChange 中移除
+    private void removeFromChangeAppCaChe(URL url) {
+        String host = url.getHost();
+        Integer portInt = url.getPort();
+        String category = url.getParameter(Constants.CATEGORY_KEY, Constants.DEFAULT_CATEGORY);
+        String port = String.valueOf(portInt);
 
-        for(Map.Entry<String, Map<String, Set<URL>>> categoryEntry : registryCache.entrySet()){
-            String category = categoryEntry.getKey();
-            Map<String, Set<URL>> categoryServices = categoryEntry.getValue();
+        String application = url.getParameter(Constants.APPLICATION_KEY);
+        String organization = url.getParameter(MonitorConstants.ORGANICATION);
 
-            Set<ApplicationChangeBO> oldChangeSet = changeAppCaChe.get(category);
-            if(null == oldChangeSet){
-                oldChangeSet = new ConcurrentHashSet<>();
-                changeAppCaChe.put(category,oldChangeSet);
-            }
+        if (organization == null) organization = "";
 
-            Set<ApplicationChangeBO> newChangeSet = new ConcurrentHashSet<>();
-            for (Map.Entry<String, Set<URL>> serviceEntry : categoryServices.entrySet()) {
-                Set<URL> urls = serviceEntry.getValue();
-                for(URL url : urls){
-                    String host = url.getHost();
-                    Integer portInt = url.getPort();
-                    String port = String.valueOf(portInt);
+        ApplicationChangeBO applicationChangeBO = new ApplicationChangeBO(host, port, application, category, organization);
 
-                    String application = url.getParameter(Constants.APPLICATION_KEY);
-                    String organization = url.getParameter(MonitorConstants.ORGANICATION);
-
-                    if(organization == null) organization = "";
-
-                    ApplicationChangeBO applicationChangeBO = new ApplicationChangeBO(host,port,application,category,organization);
-                    newChangeSet.add(applicationChangeBO);
-                }
-            }
-
-            /**比较新老**/
+        Set<ApplicationChangeBO> oldChangeSet = changeAppCaChe.get(category);
+        if (oldChangeSet != null && oldChangeSet.contains(applicationChangeBO)) {
+            oldChangeSet.remove(applicationChangeBO);
             //初始化完成方可对比处理数据
-            Boolean startMonitor = (Boolean) finalDataMap.get("startMonitor");
+            Boolean startMonitor = (Boolean) finalDataMap.get(IS_START_MONITOR);
 
-            //老中没有的添加
-            for(ApplicationChangeBO newChangeBO : newChangeSet){
-                if(!oldChangeSet.contains(newChangeBO)){
-
-                    oldChangeSet.add(newChangeBO);
-
-                    if(startMonitor != null && startMonitor) {
-                        appChangeService.afterChangeInsertDo(newChangeBO);
-                        appCacheChange = true;
-                    }
-                }
+            if (startMonitor != null && startMonitor) {
+                appChangeService.afterChangeDeleteDo(applicationChangeBO);
             }
-            //老中移除的
-            Iterator<ApplicationChangeBO> oldChangeBOItr = oldChangeSet.iterator();
-            while(oldChangeBOItr.hasNext()){
-                ApplicationChangeBO oldChangeBO = oldChangeBOItr.next();
-                if(!newChangeSet.contains(oldChangeBO)){
-
-                    oldChangeBOItr.remove();
-                    if(startMonitor != null && startMonitor) {
-                        appChangeService.afterChangeDeleteDo(oldChangeBO);
-                        appCacheChange = true;
-                    }
-                }
-            }
-
         }
-        //appCache发生变化
-        if(appCacheChange){
-            saveChangeAppCaChe();
+
+
+    }
+
+    // 从appChange 中新增
+    private void addToChangeAppCaChe(URL url) {
+        String host = url.getHost();
+        Integer portInt = url.getPort();
+        String category = url.getParameter(Constants.CATEGORY_KEY, Constants.DEFAULT_CATEGORY);
+        String port = String.valueOf(portInt);
+
+        String application = url.getParameter(Constants.APPLICATION_KEY);
+        String organization = url.getParameter(MonitorConstants.ORGANICATION);
+
+        if (organization == null) organization = "";
+
+        ApplicationChangeBO applicationChangeBO = new ApplicationChangeBO(host, port, application, category, organization);
+
+        Set<ApplicationChangeBO> oldChangeSet = changeAppCaChe.get(category);
+        if (null == oldChangeSet) {
+            oldChangeSet = new ConcurrentHashSet<>();
+            changeAppCaChe.put(category, oldChangeSet);
+        }
+
+        //老中没有的添加
+        if (!oldChangeSet.contains(applicationChangeBO)) {
+
+            oldChangeSet.add(applicationChangeBO);
+
+            //初始化完成方可对比处理数据
+            Boolean startMonitor = (Boolean) finalDataMap.get(IS_START_MONITOR);
+            if (startMonitor != null && startMonitor) {
+                appChangeService.afterChangeInsertDo(applicationChangeBO);
+            }
         }
 
     }
 
 
     //changeApp--redis存入
-    private void saveChangeAppCaChe(){
-        Map<String,Set<ApplicationChangeBO>> map = new ConcurrentHashMap<>();
+    private void saveChangeAppCaChe() {
+        Map<String, Set<ApplicationChangeBO>> map = new ConcurrentHashMap<>();
         map.putAll(changeAppCaChe);
         appChangeService.saveChangeAppCache(map);
     }

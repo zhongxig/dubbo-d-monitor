@@ -93,6 +93,11 @@ dubbo-d-monitor讨论QQ群号是：413255856， 加前请注明 dubbo监控中�
 ---
 
 # 六、更改历史
+### 2017.03.09 -`master`
+> dubbo-d-monitor 1.2.0:<br>
+1. 优化zk节点的应用停止服务和启动服务的处理逻辑代码<br>
+2. 解决监控中心宕机后重启的补偿机制执行缓慢<br>
+
 ### 2016.11.08 -`master`
 > dubbo-d-monitor 1.1.4:<br>
 1. 修复dubboService 数据采集导致的OOM bug<br>

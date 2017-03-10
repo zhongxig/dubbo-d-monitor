@@ -93,7 +93,7 @@ dubbo-d-monitor讨论QQ群号是：413255856， 加前请注明 dubbo监控中�
 ---
 
 # 六、更改历史
-### 2017.03.09 -`master`
+### 2017.03.10 -`master`
 > dubbo-d-monitor 1.2.1:<br>
 1. 修复group 的数据统计有误的bug，由于 dubbo自带bug 统计中不带有group，本系统均不支持group统计
 

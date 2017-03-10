@@ -252,7 +252,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
     //提供者的service处理
     private void providerService(URL url,ApplicationBO applicationBO,Set<String> testUrlSet,Set<String> onlineUrlSet){
-        String serviceName = url.getServiceKey();
+        String serviceName = url.getServiceInterface();
         String host = url.getHost();
         String port = String.valueOf(url.getPort());
         HostBO hostBO = new HostBO(host,port);

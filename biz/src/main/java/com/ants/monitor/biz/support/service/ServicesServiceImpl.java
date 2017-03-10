@@ -136,7 +136,7 @@ public class ServicesServiceImpl implements ServicesService {
             String finalTime = "";
             for(URL url : urlSet){
                 //是否被禁止,禁止则不出现
-                Set<URL> forbidSet = forbidServices.get(url.getServiceKey());
+                Set<URL> forbidSet = forbidServices.get(url.getServiceInterface());
                 if(null != forbidSet && !forbidSet.isEmpty()) {
                     if (Tool.compareIsOverride(url, forbidSet)) {
                         continue;

@@ -165,7 +165,7 @@ public class RegistryContainerImpl implements RegistryContainer {
                         services = new ConcurrentHashMap<>();
                         categories.put(category, services);
                     }
-                    String service = url.getServiceKey();
+                    String service = url.getServiceInterface();
                     if ("com.alibaba.dubbo.monitor.MonitorService".equals(service)) {
                         continue;
                     }
@@ -284,7 +284,7 @@ public class RegistryContainerImpl implements RegistryContainer {
             String version = url.getParameter(Constants.VERSION_KEY);
             // 注意：empty协议的group和version为*
             if (!Constants.ANY_VALUE.equals(group) && !Constants.ANY_VALUE.equals(version)) {
-                String service = url.getServiceKey();
+                String service = url.getServiceInterface();
 
                 Set<URL> urlSet = services.get(service);
                 for (URL removeUrl : urlSet) {

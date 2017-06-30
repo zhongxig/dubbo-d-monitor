@@ -149,11 +149,11 @@ public class ApplicationServiceImpl implements ApplicationService {
                 ApplicationBO applicationBO = appMap.get(application);
                 if (null == applicationBO) {
                     String organization = url.getParameter(MonitorConstants.ORGANICATION);
-
+                    String owners = url.getParameter(MonitorConstants.OWNER);
                     applicationBO = new ApplicationBO();
                     applicationBO.setApplicationName(application);
                     if(StringUtils.isEmpty(applicationBO.getOrganization())) applicationBO.setOrganization(organization == null ? "" : organization);
-//                    if(StringUtils.isEmpty(applicationBO.getOwner())) applicationBO.setOwner(owners == null ? "" : owners);
+                    if(StringUtils.isEmpty(applicationBO.getOwner())) applicationBO.setOwner(owners == null ? "" : owners);
                     appMap.put(application, applicationBO);
                 } else {
                     hostList = applicationBO.getHostList();
